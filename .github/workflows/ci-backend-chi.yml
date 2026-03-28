@@ -1,0 +1,36 @@
+name: ci-backend-chi
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "apps/backend-chi/**"
+      - ".github/workflows/ci-backend-chi.yml"
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/backend-chi
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: apps/backend-chi/go.mod
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.6
+          working-directory: apps/backend-chi
+
+      - name: Run tests
+        run: go test -v ./...

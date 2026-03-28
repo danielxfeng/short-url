@@ -1,0 +1,19 @@
+{
+  "name": "backend-chi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "go test ./... -cover",
+    "format": "gofmt -w .",
+    "format:check": "gofmt -l .",
+    "lint": "golangci-lint run",
+    "lint:fix": "golangci-lint run --fix",
+    "precommit": "pnpm run format && pnpm run lint:fix && pnpm run test",
+    "dev": "go run cmd/server/main.go"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.14.0"
+}

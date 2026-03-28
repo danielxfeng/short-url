@@ -1,0 +1,34 @@
+{
+  "name": "short-url",
+  "version": "1.0.0",
+  "description": "Web service for short url",
+  "main": "index.js",
+  "scripts": {
+    "test": "pnpm -r run test",
+    "precommit": "pnpm -r run precommit",
+    "dev": "pnpm -r run dev",
+    "prepare": "husky"
+  },
+  "keywords": [],
+  "author": "Daniel",
+  "license": "MIT",
+  "packageManager": "pnpm@10.14.0",
+  "devDependencies": {
+    "eslint": "^9.39.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.8.1"
+  },
+  "lint-staged": {
+    "**/*.{ts,tsx,js}": [
+      "eslint --fix"
+    ],
+    "**/*.{ts,tsx,js,json,md,yml,yaml}": [
+      "prettier --write --ignore-unknown"
+    ],
+    "apps/backend-chi/**/*.go": [
+      "cd apps/backend-chi && golangci-lint run --fix",
+      "cd apps/backend-chi && gofmt -w ."
+    ]
+  }
+}
