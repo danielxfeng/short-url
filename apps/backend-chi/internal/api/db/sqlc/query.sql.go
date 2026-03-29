@@ -113,13 +113,13 @@ func (q *Queries) GetLinksByUserID(ctx context.Context, userID int32) ([]Link, e
 	return items, nil
 }
 
-const getMe = `-- name: GetMe :one
+const getUserByID = `-- name: GetUserByID :one
 SELECT id, provider, provider_id, display_name, profile_pic, created_at FROM users
 WHERE id = $1
 `
 
-func (q *Queries) GetMe(ctx context.Context, id int32) (User, error) {
-	row := q.db.QueryRow(ctx, getMe, id)
+func (q *Queries) GetUserByID(ctx context.Context, id int32) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByID, id)
 	var i User
 	err := row.Scan(
 		&i.ID,
