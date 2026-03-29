@@ -2,6 +2,9 @@ package db
 
 import (
 	"context"
+	"errors"
+	"path/filepath"
+	"runtime"
 	"time"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -10,7 +13,20 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-const MIGRATIONS_DIR = "file://internal/api/db/query/migrations"
+func migrationsDirURL() (string, error) {
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		return "", errors.New("cannot resolve migrations path")
+	}
+
+	path := filepath.Join(filepath.Dir(file), "..", "query", "migrations")
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		return "", err
+	}
+
+	return "file://" + filepath.ToSlash(abs), nil
+}
 
 func NewPool(connStr string) (*pgxpool.Pool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -36,7 +52,12 @@ func ClosePool(pool *pgxpool.Pool) {
 }
 
 func MigrateDB(connStr string) error {
-	m, err := migrate.New(MIGRATIONS_DIR, connStr)
+	migrationsURL, err := migrationsDirURL()
+	if err != nil {
+		return err
+	}
+
+	m, err := migrate.New(migrationsURL, connStr)
 	if err != nil {
 		return err
 	}
