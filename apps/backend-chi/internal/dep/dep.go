@@ -5,6 +5,7 @@ import (
 	"time"
 
 	db "github.com/danielxfeng/short-url/apps/backend-chi/internal/api/db/sqlc"
+	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/dto"
 	"github.com/getsentry/sentry-go"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -29,6 +30,8 @@ func InitDep(level slog.Level) (*Dep, error) {
 		return nil, err
 	}
 
+	dto.InitValidator()
+
 	err = InitSentry(cfg.AppMode, cfg.SentryDSN)
 	if err != nil {
 		return nil, err
@@ -39,7 +42,7 @@ func InitDep(level slog.Level) (*Dep, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return NewDep(cfg, logger, dbPool), nil
 }
 

@@ -19,4 +19,8 @@ CREATE TABLE links (
   clicks INT NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   deleted_at TIMESTAMPTZ
-)
+);
+
+CREATE INDEX idx_links_active_by_user_created_at
+ON links (user_id, created_at DESC)
+WHERE deleted_at IS NULL;
