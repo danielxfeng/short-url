@@ -33,4 +33,6 @@ jobs:
           working-directory: apps/backend-chi
 
       - name: Run tests
+        env:
+          TEST_DB_URL: ${{ secrets.TEST_DB_URL }}
         run: go test -v ./...

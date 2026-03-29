@@ -10,7 +10,9 @@
     "lint": "golangci-lint run",
     "lint:fix": "golangci-lint run --fix",
     "precommit": "pnpm run format && pnpm run lint:fix && pnpm run test",
-    "dev": "go run cmd/server/main.go"
+    "dev": "go run cmd/server/main.go",
+    "db:generate": "sqlc generate",
+    "db:migrate": "go run cmd/migrate/main.go"
   },
   "keywords": [],
   "author": "",

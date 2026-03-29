@@ -1,0 +1,18 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "internal/api/db/query/query.sql"
+    schema: "internal/api/db/query/migrations"
+    gen:
+      go:
+        package: "db"
+        out: "internal/api/db/sqlc"
+        sql_package: "pgx/v5"
+        emit_pointers_for_null_types: true
+        overrides:
+          - db_type: "timestamptz"
+            go_type: "time.Time"
+          - column: "links.deleted_at"
+            go_type:
+              type: "time.Time"
+              pointer: true

@@ -4,18 +4,23 @@ import (
 	"log/slog"
 	"time"
 
+	db "github.com/danielxfeng/short-url/apps/backend-chi/internal/api/db/sqlc"
+	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/dto"
 	"github.com/getsentry/sentry-go"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Dep struct {
 	Cfg    *Config
 	Logger *slog.Logger
+	DbPool *pgxpool.Pool
 }
 
-func NewDep(cfg *Config, logger *slog.Logger) *Dep {
+func NewDep(cfg *Config, logger *slog.Logger, dbPool *pgxpool.Pool) *Dep {
 	return &Dep{
 		Cfg:    cfg,
 		Logger: logger,
+		DbPool: dbPool,
 	}
 }
 
@@ -25,15 +30,24 @@ func InitDep(level slog.Level) (*Dep, error) {
 		return nil, err
 	}
 
+	dto.InitValidator()
+
 	err = InitSentry(cfg.AppMode, cfg.SentryDSN)
 	if err != nil {
 		return nil, err
 	}
 
 	logger := GetLogger(level, cfg.AppMode, cfg.SentryDSN)
-	return NewDep(cfg, logger), nil
+
+	dbPool, err := db.NewPool(cfg.DbURL)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewDep(cfg, logger, dbPool), nil
 }
 
 func CloseDep(dep *Dep) {
 	sentry.Flush(2 * time.Second)
+	db.ClosePool(dep.DbPool)
 }
