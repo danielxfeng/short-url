@@ -132,6 +132,15 @@ func (q *Queries) GetUserByID(ctx context.Context, id int32) (User, error) {
 	return i, err
 }
 
+const resetDb = `-- name: ResetDb :exec
+TRUNCATE users, links RESTART IDENTITY CASCADE
+`
+
+func (q *Queries) ResetDb(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, resetDb)
+	return err
+}
+
 const setLinkClicked = `-- name: SetLinkClicked :one
 UPDATE links
 SET clicks = clicks + 1

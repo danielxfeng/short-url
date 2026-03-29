@@ -45,3 +45,6 @@ UPDATE links
 SET clicks = clicks + 1
 WHERE id = $1 AND deleted_at IS NULL
 RETURNING clicks;
+
+-- name: ResetDb :exec
+TRUNCATE users, links RESTART IDENTITY CASCADE;
