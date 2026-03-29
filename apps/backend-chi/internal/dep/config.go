@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type AppModeType string
@@ -25,6 +26,8 @@ type Config struct {
 	SentryDSN string
 	DbURL     string
 	TestDbURL string
+	JWTSecret string
+	JWTExpiry time.Duration
 }
 
 func GetEnvStrOrDefault(key string, defaultValue string) string {
@@ -71,6 +74,11 @@ func LoadAppMode() AppModeType {
 }
 
 func LoadConfigFromEnv() (*Config, error) {
+	jwtSecret, err := GetEnvStrOrError("JWT_SECRET")
+	if err != nil {
+		return nil, err
+	}
+
 	cfg := &Config{
 		AppMode:   LoadAppMode(),
 		Port:      GetEnvIntOrDefault("PORT", 8080),
@@ -78,6 +86,8 @@ func LoadConfigFromEnv() (*Config, error) {
 		SentryDSN: GetEnvStrOrDefault("SENTRY_DSN", ""),
 		DbURL:     GetEnvStrOrDefault("DB_URL", "postgresql://user:password@localhost:5432/dbname?sslmode=disable"),
 		TestDbURL: GetEnvStrOrDefault("TEST_DB_URL", "postgresql://user:password@localhost:5432/test_dbname?sslmode=disable"),
+		JWTSecret: jwtSecret,
+		JWTExpiry: time.Duration(GetEnvIntOrDefault("JWT_EXPIRY", 24 * 7)) * time.Hour, // default to 7 days
 	}
 
 	return cfg, nil
