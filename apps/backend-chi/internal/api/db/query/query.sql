@@ -2,7 +2,7 @@
 SELECT * FROM users
 WHERE id = $1;
 
--- name: CreateUser :one
+-- name: UpsertUser :one
 INSERT INTO users (
   provider, provider_id, display_name, profile_pic
 ) VALUES (

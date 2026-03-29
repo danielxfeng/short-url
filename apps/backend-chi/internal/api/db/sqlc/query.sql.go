@@ -39,43 +39,6 @@ func (q *Queries) CreateLink(ctx context.Context, arg CreateLinkParams) (Link, e
 	return i, err
 }
 
-const createUser = `-- name: CreateUser :one
-INSERT INTO users (
-  provider, provider_id, display_name, profile_pic
-) VALUES (
-  $1, $2, $3, $4
-) ON CONFLICT (provider, provider_id) DO UPDATE
-  SET display_name = EXCLUDED.display_name,
-      profile_pic = EXCLUDED.profile_pic
-RETURNING id, provider, provider_id, display_name, profile_pic, created_at
-`
-
-type CreateUserParams struct {
-	Provider    ProviderEnum
-	ProviderID  string
-	DisplayName *string
-	ProfilePic  *string
-}
-
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRow(ctx, createUser,
-		arg.Provider,
-		arg.ProviderID,
-		arg.DisplayName,
-		arg.ProfilePic,
-	)
-	var i User
-	err := row.Scan(
-		&i.ID,
-		&i.Provider,
-		&i.ProviderID,
-		&i.DisplayName,
-		&i.ProfilePic,
-		&i.CreatedAt,
-	)
-	return i, err
-}
-
 const deleteUser = `-- name: DeleteUser :one
 DELETE FROM users
 WHERE id = $1
@@ -194,4 +157,41 @@ func (q *Queries) SetLinkDeleted(ctx context.Context, id int32) (int32, error) {
 	row := q.db.QueryRow(ctx, setLinkDeleted, id)
 	err := row.Scan(&id)
 	return id, err
+}
+
+const upsertUser = `-- name: UpsertUser :one
+INSERT INTO users (
+  provider, provider_id, display_name, profile_pic
+) VALUES (
+  $1, $2, $3, $4
+) ON CONFLICT (provider, provider_id) DO UPDATE
+  SET display_name = EXCLUDED.display_name,
+      profile_pic = EXCLUDED.profile_pic
+RETURNING id, provider, provider_id, display_name, profile_pic, created_at
+`
+
+type UpsertUserParams struct {
+	Provider    ProviderEnum
+	ProviderID  string
+	DisplayName *string
+	ProfilePic  *string
+}
+
+func (q *Queries) UpsertUser(ctx context.Context, arg UpsertUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, upsertUser,
+		arg.Provider,
+		arg.ProviderID,
+		arg.DisplayName,
+		arg.ProfilePic,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Provider,
+		&i.ProviderID,
+		&i.DisplayName,
+		&i.ProfilePic,
+		&i.CreatedAt,
+	)
+	return i, err
 }
