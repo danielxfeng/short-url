@@ -10,7 +10,7 @@ import (
 
 func main() {
 	_ = godotenv.Load()
-	
+
 	cfg, err := dep.LoadConfigFromEnv()
 	if err != nil {
 		log.Fatal("failed to init cfg", "err: ", err)

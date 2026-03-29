@@ -280,7 +280,7 @@ func TestGetLinksByUserID(t *testing.T) {
 	if page1[0].ID != expectedDesc[0] || page1[1].ID != expectedDesc[1] {
 		t.Fatalf("unexpected page1 ids: got [%d %d], want [%d %d]", page1[0].ID, page1[1].ID, expectedDesc[0], expectedDesc[1])
 	}
-	if !(page1[0].ID > page1[1].ID) {
+	if page1[0].ID <= page1[1].ID {
 		t.Fatalf("page1 not descending: %+v", page1)
 	}
 
@@ -295,7 +295,7 @@ func TestGetLinksByUserID(t *testing.T) {
 	if page2[0].ID != expectedDesc[2] || page2[1].ID != expectedDesc[3] {
 		t.Fatalf("unexpected page2 ids: got [%d %d], want [%d %d]", page2[0].ID, page2[1].ID, expectedDesc[2], expectedDesc[3])
 	}
-	if !(page2[0].ID > page2[1].ID) {
+	if page2[0].ID <= page2[1].ID {
 		t.Fatalf("page2 not descending: %+v", page2)
 	}
 	for _, l := range page2 {
