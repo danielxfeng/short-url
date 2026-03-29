@@ -38,6 +38,7 @@ func InitDep(level slog.Level) (*Dep, error) {
 	}
 
 	logger := GetLogger(level, cfg.AppMode, cfg.SentryDSN)
+
 	dbPool, err := db.NewPool(cfg.DbURL)
 	if err != nil {
 		return nil, err
