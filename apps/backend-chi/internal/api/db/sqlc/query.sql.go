@@ -81,12 +81,19 @@ func (q *Queries) GetLinkByCode(ctx context.Context, code string) (Link, error) 
 
 const getLinksByUserID = `-- name: GetLinksByUserID :many
 SELECT id, user_id, code, original_url, clicks, created_at, deleted_at FROM links
-WHERE user_id = $1 AND deleted_at IS NULL
-ORDER BY created_at DESC
+WHERE user_id = $1 AND deleted_at IS NULL AND id < $2
+ORDER BY id DESC
+LIMIT $3
 `
 
-func (q *Queries) GetLinksByUserID(ctx context.Context, userID int32) ([]Link, error) {
-	rows, err := q.db.Query(ctx, getLinksByUserID, userID)
+type GetLinksByUserIDParams struct {
+	UserID int32
+	ID     int32
+	Limit  int32
+}
+
+func (q *Queries) GetLinksByUserID(ctx context.Context, arg GetLinksByUserIDParams) ([]Link, error) {
+	rows, err := q.db.Query(ctx, getLinksByUserID, arg.UserID, arg.ID, arg.Limit)
 	if err != nil {
 		return nil, err
 	}

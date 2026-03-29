@@ -82,3 +82,14 @@ type LinkResponse struct {
 	CreatedAt   string `json:"created_at"`
 	IsDeleted   bool   `json:"is_deleted"`
 }
+
+type GetLinksReq struct {
+	Limit  *int32 `json:"limit,omitempty"  validate:"omitempty,min=1,max=20"`
+	Cursor *int32 `json:"cursor,omitempty" validate:"omitempty"`
+}
+
+type LinksResponse struct {
+	Links   []LinkResponse `json:"links"`
+	HasMore bool           `json:"has_more"`
+	Cursor  *int32         `json:"cursor,omitempty"`
+}
