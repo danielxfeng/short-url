@@ -20,14 +20,15 @@ const (
 var allowedAppModes = []AppModeType{EnvProd, EnvDev, EnvTest}
 
 type Config struct {
-	AppMode   AppModeType
-	Port      int
-	Cors      string
-	SentryDSN string
-	DbURL     string
-	TestDbURL string
-	JWTSecret string
-	JWTExpiry time.Duration
+	AppMode      AppModeType
+	Port         int
+	Cors         string
+	SentryDSN    string
+	DbURL        string
+	TestDbURL    string
+	JWTSecret    string
+	JWTExpiry    time.Duration
+	NotFoundPage string
 }
 
 func GetEnvStrOrDefault(key string, defaultValue string) string {
@@ -80,14 +81,15 @@ func LoadConfigFromEnv() (*Config, error) {
 	}
 
 	cfg := &Config{
-		AppMode:   LoadAppMode(),
-		Port:      GetEnvIntOrDefault("PORT", 8080),
-		Cors:      GetEnvStrOrDefault("CORS", "http://localhost:5173"),
-		SentryDSN: GetEnvStrOrDefault("SENTRY_DSN", ""),
-		DbURL:     GetEnvStrOrDefault("DB_URL", "postgresql://user:password@localhost:5432/dbname?sslmode=disable"),
-		TestDbURL: GetEnvStrOrDefault("TEST_DB_URL", "postgresql://user:password@localhost:5432/test_dbname?sslmode=disable"),
-		JWTSecret: jwtSecret,
-		JWTExpiry: time.Duration(GetEnvIntOrDefault("JWT_EXPIRY", 24 * 7)) * time.Hour, // default to 7 days
+		AppMode:      LoadAppMode(),
+		Port:         GetEnvIntOrDefault("PORT", 8080),
+		Cors:         GetEnvStrOrDefault("CORS", "http://localhost:5173"),
+		SentryDSN:    GetEnvStrOrDefault("SENTRY_DSN", ""),
+		DbURL:        GetEnvStrOrDefault("DB_URL", "postgresql://user:password@localhost:5432/dbname?sslmode=disable"),
+		TestDbURL:    GetEnvStrOrDefault("TEST_DB_URL", "postgresql://user:password@localhost:5432/test_dbname?sslmode=disable"),
+		JWTSecret:    jwtSecret,
+		JWTExpiry:    time.Duration(GetEnvIntOrDefault("JWT_EXPIRY", 24*7)) * time.Hour, // default to 7 days
+		NotFoundPage: GetEnvStrOrDefault("NOT_FOUND_PAGE", "http://localhost:5173/not-found"),
 	}
 
 	return cfg, nil

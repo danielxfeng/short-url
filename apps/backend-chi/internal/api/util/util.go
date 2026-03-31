@@ -1,9 +1,12 @@
 package util
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/apierror"
@@ -64,4 +67,39 @@ func SendError(w http.ResponseWriter, err error) {
 
 	// It would be a 500 so recovery handles the rest.
 	panic(err)
+}
+
+func ParseInt32ClampedOrDefault(value string, defaultValue int32, min int32, max int32) int32 {
+
+	v, err := strconv.Atoi(value)
+	if err != nil {
+		return defaultValue
+	}
+
+	v32 := int32(v)
+
+	if v32 > max {
+		return max
+	}
+
+	if v32 < min {
+		return min
+	}
+
+	return v32
+}
+
+// https://github.com/go-chi/chi/blob/master/middleware/request_id.go
+func GenerateRandomString(length int) string {
+	var buf [12]byte
+	var b64 string
+	for len(b64) < length {
+		_, err := rand.Read(buf[:])
+		if err != nil {
+			panic("failed to generate random string: " + err.Error())
+		}
+		b64 = base64.StdEncoding.EncodeToString(buf[:])
+		b64 = strings.NewReplacer("+", "", "/", "").Replace(b64)
+	}
+	return b64[:length]
 }

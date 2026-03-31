@@ -3,6 +3,7 @@ package dto
 import (
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 
@@ -75,17 +76,12 @@ type CreateLinkReq struct {
 }
 
 type LinkResponse struct {
-	ID          int32  `json:"id"`
-	Code        string `json:"code"`
-	OriginalUrl string `json:"original_url"`
-	Clicks      int32  `json:"clicks"`
-	CreatedAt   string `json:"created_at"`
-	IsDeleted   bool   `json:"is_deleted"`
-}
-
-type GetLinksReq struct {
-	Limit  *int32 `json:"limit,omitempty"  validate:"omitempty,min=1,max=20"`
-	Cursor *int32 `json:"cursor,omitempty" validate:"omitempty"`
+	ID          int32     `json:"id"`
+	Code        string    `json:"code"`
+	OriginalUrl string    `json:"original_url"`
+	Clicks      int32     `json:"clicks"`
+	CreatedAt   time.Time `json:"created_at"`
+	IsDeleted   bool      `json:"is_deleted"`
 }
 
 type LinksResponse struct {

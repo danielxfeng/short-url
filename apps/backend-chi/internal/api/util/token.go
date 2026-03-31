@@ -14,14 +14,14 @@ type Claims struct {
 
 func GenerateToken(userID int32, secret string, expiry time.Duration) (string, error) {
 	now := time.Now()
-	
+
 	claims := Claims{
 		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(now.Add(expiry)),
 			IssuedAt:  jwt.NewNumericDate(now),
 			NotBefore: jwt.NewNumericDate(now),
-			ID:		   uuid.NewString(),
+			ID:        uuid.NewString(),
 		},
 	}
 
@@ -42,7 +42,7 @@ func ValidateToken(tokenStr string, secret string) (int32, error) {
 		return 0, jwt.ErrTokenMalformed
 	}
 
-	if claims, ok := token.Claims.(*Claims); ok  {
+	if claims, ok := token.Claims.(*Claims); ok {
 		return claims.UserID, nil
 	}
 

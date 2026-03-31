@@ -29,6 +29,10 @@ RETURNING *;
 SELECT * FROM links
 WHERE code = $1 AND deleted_at IS NULL;
 
+-- name: GetLinkByCodeWithDeleted :one
+SELECT * FROM links
+WHERE code = $1;
+
 -- name: GetLinksByUserID :many
 SELECT * FROM links
 WHERE user_id = $1 AND deleted_at IS NULL AND id < $2
@@ -38,13 +42,13 @@ LIMIT $3;
 -- name: SetLinkDeleted :one
 UPDATE links
 SET deleted_at = now()
-WHERE id = $1 AND deleted_at IS NULL
+WHERE code = $1 AND user_id = $2 AND deleted_at IS NULL
 RETURNING id;
 
 -- name: SetLinkClicked :one
 UPDATE links
 SET clicks = clicks + 1
-WHERE id = $1 AND deleted_at IS NULL
+WHERE code = $1 AND deleted_at IS NULL
 RETURNING clicks;
 
 -- name: ResetDb :exec

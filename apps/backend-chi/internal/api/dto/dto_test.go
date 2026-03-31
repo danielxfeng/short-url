@@ -22,10 +22,6 @@ func strPtr(s string) *string {
 	return &s
 }
 
-func int32Ptr(v int32) *int32 {
-	return &v
-}
-
 func TestTrimValue(t *testing.T) {
 	v := newValidatorWithTrim(t)
 
@@ -332,77 +328,6 @@ func TestCreateLinkReqValidation(t *testing.T) {
 				OriginalUrl: "    ",
 			},
 			wantPass: false,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			err := v.Struct(&tc.in)
-			if tc.wantPass && err != nil {
-				t.Fatalf("unexpected error: %v", err)
-			}
-			if !tc.wantPass && err == nil {
-				t.Fatalf("expected error, got nil")
-			}
-		})
-	}
-}
-
-func TestGetLinksReqValidation(t *testing.T) {
-	v := newValidatorWithTrim(t)
-
-	testCases := []struct {
-		name     string
-		in       GetLinksReq
-		wantPass bool
-	}{
-		{
-			name: "valid limit within range",
-			in: GetLinksReq{
-				Limit: int32Ptr(10),
-			},
-			wantPass: true,
-		},
-		{
-			name: "limit zero fails",
-			in: GetLinksReq{
-				Limit: int32Ptr(0),
-			},
-			wantPass: false,
-		},
-		{
-			name: "limit negative fails",
-			in: GetLinksReq{
-				Limit: int32Ptr(-1),
-			},
-			wantPass: false,
-		},
-		{
-			name: "limit above max fails",
-			in: GetLinksReq{
-				Limit: int32Ptr(21),
-			},
-			wantPass: false,
-		},
-		{
-			name:     "limit omitted passes",
-			in:       GetLinksReq{},
-			wantPass: true,
-		},
-		{
-			name: "cursor omitted passes",
-			in: GetLinksReq{
-				Limit: int32Ptr(5),
-			},
-			wantPass: true,
-		},
-		{
-			name: "cursor provided passes",
-			in: GetLinksReq{
-				Limit:  nil,
-				Cursor: func() *int32 { v := int32(100); return &v }(),
-			},
-			wantPass: true,
 		},
 	}
 

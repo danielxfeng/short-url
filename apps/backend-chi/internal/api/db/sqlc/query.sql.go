@@ -79,6 +79,26 @@ func (q *Queries) GetLinkByCode(ctx context.Context, code string) (Link, error) 
 	return i, err
 }
 
+const getLinkByCodeWithDeleted = `-- name: GetLinkByCodeWithDeleted :one
+SELECT id, user_id, code, original_url, clicks, created_at, deleted_at FROM links
+WHERE code = $1
+`
+
+func (q *Queries) GetLinkByCodeWithDeleted(ctx context.Context, code string) (Link, error) {
+	row := q.db.QueryRow(ctx, getLinkByCodeWithDeleted, code)
+	var i Link
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Code,
+		&i.OriginalUrl,
+		&i.Clicks,
+		&i.CreatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
 const getLinksByUserID = `-- name: GetLinksByUserID :many
 SELECT id, user_id, code, original_url, clicks, created_at, deleted_at FROM links
 WHERE user_id = $1 AND deleted_at IS NULL AND id < $2
@@ -151,12 +171,12 @@ func (q *Queries) ResetDb(ctx context.Context) error {
 const setLinkClicked = `-- name: SetLinkClicked :one
 UPDATE links
 SET clicks = clicks + 1
-WHERE id = $1 AND deleted_at IS NULL
+WHERE code = $1 AND deleted_at IS NULL
 RETURNING clicks
 `
 
-func (q *Queries) SetLinkClicked(ctx context.Context, id int32) (int32, error) {
-	row := q.db.QueryRow(ctx, setLinkClicked, id)
+func (q *Queries) SetLinkClicked(ctx context.Context, code string) (int32, error) {
+	row := q.db.QueryRow(ctx, setLinkClicked, code)
 	var clicks int32
 	err := row.Scan(&clicks)
 	return clicks, err
@@ -165,12 +185,18 @@ func (q *Queries) SetLinkClicked(ctx context.Context, id int32) (int32, error) {
 const setLinkDeleted = `-- name: SetLinkDeleted :one
 UPDATE links
 SET deleted_at = now()
-WHERE id = $1 AND deleted_at IS NULL
+WHERE code = $1 AND user_id = $2 AND deleted_at IS NULL
 RETURNING id
 `
 
-func (q *Queries) SetLinkDeleted(ctx context.Context, id int32) (int32, error) {
-	row := q.db.QueryRow(ctx, setLinkDeleted, id)
+type SetLinkDeletedParams struct {
+	Code   string
+	UserID int32
+}
+
+func (q *Queries) SetLinkDeleted(ctx context.Context, arg SetLinkDeletedParams) (int32, error) {
+	row := q.db.QueryRow(ctx, setLinkDeleted, arg.Code, arg.UserID)
+	var id int32
 	err := row.Scan(&id)
 	return id, err
 }

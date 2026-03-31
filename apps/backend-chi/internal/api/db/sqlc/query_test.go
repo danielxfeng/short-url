@@ -129,7 +129,7 @@ func TestCreateLink(t *testing.T) {
 	u1 := mkUser(t, q, "create-u1")
 	u2 := mkUser(t, q, "create-u2")
 	deleted := mkLink(t, q, u2.ID, "deleted-code")
-	if _, err := q.SetLinkDeleted(context.Background(), deleted.ID); err != nil {
+	if _, err := q.SetLinkDeleted(context.Background(), db.SetLinkDeletedParams{Code: deleted.Code, UserID: u2.ID}); err != nil {
 		t.Fatalf("seed delete link: %v", err)
 	}
 	if _, err := q.CreateLink(context.Background(), db.CreateLinkParams{UserID: u1.ID, Code: "dup", OriginalUrl: "https://example.com/dup"}); err != nil {
@@ -226,6 +226,10 @@ func TestGetLinkByCode(t *testing.T) {
 	runBeforeEachReset(t, q)
 	u := mkUser(t, q, "get-link-user")
 	seed := mkLink(t, q, u.ID, "find-me")
+	deleted := mkLink(t, q, u.ID, "find-me-deleted")
+	if _, err := q.SetLinkDeleted(context.Background(), db.SetLinkDeletedParams{Code: deleted.Code, UserID: u.ID}); err != nil {
+		t.Fatalf("seed deleted link: %v", err)
+	}
 
 	tests := []struct {
 		name    string
@@ -233,6 +237,7 @@ func TestGetLinkByCode(t *testing.T) {
 		wantErr bool
 	}{
 		{name: "happy", code: "find-me"},
+		{name: "soft deleted link is hidden", code: deleted.Code, wantErr: true},
 		{name: "link doesnot exist", code: "missing", wantErr: true},
 	}
 
@@ -247,6 +252,47 @@ func TestGetLinkByCode(t *testing.T) {
 				t.Fatalf("unexpected error: %v", err)
 			}
 			if got.ID != seed.ID || got.Code != seed.Code {
+				t.Fatalf("unexpected link: %+v", got)
+			}
+		})
+	}
+}
+
+func TestGetLinkByCodeWithDeleted(t *testing.T) {
+	q := sharedQueries
+	if q == nil {
+		t.Fatalf("setup test db: shared queries not initialized")
+	}
+	runBeforeEachReset(t, q)
+	u := mkUser(t, q, "get-link-with-deleted-user")
+	active := mkLink(t, q, u.ID, "find-active")
+	deleted := mkLink(t, q, u.ID, "find-deleted")
+	if _, err := q.SetLinkDeleted(context.Background(), db.SetLinkDeletedParams{Code: deleted.Code, UserID: u.ID}); err != nil {
+		t.Fatalf("seed deleted link: %v", err)
+	}
+
+	tests := []struct {
+		name    string
+		code    string
+		wantErr bool
+		wantID  int32
+	}{
+		{name: "active link can be found", code: active.Code, wantID: active.ID},
+		{name: "deleted link can be found", code: deleted.Code, wantID: deleted.ID},
+		{name: "link doesnot exist", code: "missing", wantErr: true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := q.GetLinkByCodeWithDeleted(context.Background(), tc.code)
+			if tc.wantErr {
+				expectNoRows(t, err)
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if got.ID != tc.wantID || got.Code != tc.code {
 				t.Fatalf("unexpected link: %+v", got)
 			}
 		})
@@ -461,26 +507,31 @@ func TestSetLinkClicked(t *testing.T) {
 	u := mkUser(t, q, "click-user")
 	l0 := mkLink(t, q, u.ID, "c0")
 	l8 := mkLink(t, q, u.ID, "c8")
+	deleted := mkLink(t, q, u.ID, "c-deleted")
+	if _, err := q.SetLinkDeleted(context.Background(), db.SetLinkDeletedParams{Code: deleted.Code, UserID: u.ID}); err != nil {
+		t.Fatalf("seed deleted link: %v", err)
+	}
 	for i := 0; i < 8; i++ {
-		if _, err := q.SetLinkClicked(context.Background(), l8.ID); err != nil {
+		if _, err := q.SetLinkClicked(context.Background(), l8.Code); err != nil {
 			t.Fatalf("seed click: %v", err)
 		}
 	}
 
 	tests := []struct {
 		name      string
-		id        int32
+		code      string
 		wantErr   bool
 		wantClick int32
 	}{
-		{name: "happy count=0", id: l0.ID, wantClick: 1},
-		{name: "happy count=8", id: l8.ID, wantClick: 9},
-		{name: "link doesnot exist", id: 999999, wantErr: true},
+		{name: "happy count=0", code: l0.Code, wantClick: 1},
+		{name: "happy count=8", code: l8.Code, wantClick: 9},
+		{name: "deleted link doesnot update", code: deleted.Code, wantErr: true},
+		{name: "link doesnot exist", code: "missing-code", wantErr: true},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			click, err := q.SetLinkClicked(context.Background(), tc.id)
+			click, err := q.SetLinkClicked(context.Background(), tc.code)
 			if tc.wantErr {
 				expectNoRows(t, err)
 				return
@@ -502,26 +553,29 @@ func TestSetLinkDeleted(t *testing.T) {
 	}
 	runBeforeEachReset(t, q)
 	u := mkUser(t, q, "delete-link-user")
+	u2 := mkUser(t, q, "delete-link-other-user")
 	active := mkLink(t, q, u.ID, "active")
 	gone := mkLink(t, q, u.ID, "gone")
-	if _, err := q.SetLinkDeleted(context.Background(), gone.ID); err != nil {
+	others := mkLink(t, q, u2.ID, "others")
+	if _, err := q.SetLinkDeleted(context.Background(), db.SetLinkDeletedParams{Code: gone.Code, UserID: u.ID}); err != nil {
 		t.Fatalf("seed deleted link: %v", err)
 	}
 
 	tests := []struct {
 		name    string
-		id      int32
+		arg     db.SetLinkDeletedParams
 		wantErr bool
 		wantID  int32
 	}{
-		{name: "happy", id: active.ID, wantID: active.ID},
-		{name: "link doesnot exist", id: 999999, wantErr: true},
-		{name: "link has been deleted", id: gone.ID, wantErr: true},
+		{name: "happy", arg: db.SetLinkDeletedParams{Code: active.Code, UserID: u.ID}, wantID: active.ID},
+		{name: "wrong user doesnot delete", arg: db.SetLinkDeletedParams{Code: others.Code, UserID: u.ID}, wantErr: true},
+		{name: "link doesnot exist", arg: db.SetLinkDeletedParams{Code: "missing-code", UserID: u.ID}, wantErr: true},
+		{name: "link has been deleted", arg: db.SetLinkDeletedParams{Code: gone.Code, UserID: u.ID}, wantErr: true},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			id, err := q.SetLinkDeleted(context.Background(), tc.id)
+			id, err := q.SetLinkDeleted(context.Background(), tc.arg)
 			if tc.wantErr {
 				expectNoRows(t, err)
 				return
