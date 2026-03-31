@@ -63,108 +63,110 @@ func ShortURLRouter(dep *dep.Dep, repo ShortURLRepository) http.Handler {
 		}()
 	})
 
-	// All routes below require authentication
-	r.Use(mymiddleware.Auth(dep.Cfg.JWTSecret))
+	// All routes below require authentication.
+	r.Group(func(r chi.Router) {
+		r.Use(mymiddleware.Auth(dep.Cfg.JWTSecret))
 
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		userID := r.Context().Value(mymiddleware.UserIDContextKey).(int32)
-		limit := util.ParseInt32ClampedOrDefault(r.URL.Query().Get("limit"), DEFAULT_LIMIT, MIN_LIMIT, MAX_LIMIT)
-		cursor := util.ParseInt32ClampedOrDefault(r.URL.Query().Get("cursor"), DEFAULT_CURSOR, MIN_CURSOR, MAX_CURSOR)
-		intLimit := int(limit)
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			userID := r.Context().Value(mymiddleware.UserIDContextKey).(int32)
+			limit := util.ParseInt32ClampedOrDefault(r.URL.Query().Get("limit"), DEFAULT_LIMIT, MIN_LIMIT, MAX_LIMIT)
+			cursor := util.ParseInt32ClampedOrDefault(r.URL.Query().Get("cursor"), DEFAULT_CURSOR, MIN_CURSOR, MAX_CURSOR)
+			intLimit := int(limit)
 
-		links, err := repo.GetLinksByUserID(r.Context(), db.GetLinksByUserIDParams{
-			UserID: userID,
-			Limit:  limit + 1, // fetch one extra to check if there's a next page
-			ID:     cursor,
-		})
+			links, err := repo.GetLinksByUserID(r.Context(), db.GetLinksByUserIDParams{
+				UserID: userID,
+				Limit:  limit + 1, // fetch one extra to check if there's a next page
+				ID:     cursor,
+			})
 
-		if err != nil {
-			panic(err)
-		}
-
-		hasNext := len(links) > intLimit // if we got more than the requested limit, there is a next page
-
-		var nextCursor *int32
-		if hasNext {
-			links = links[:intLimit]             // trim the extra record
-			nextCursor = &links[len(links)-1].ID // next cursor is the ID of the last record in the current page
-		}
-
-		resp := dto.LinksResponse{
-			Links:   LinksToDTO(links),
-			HasMore: hasNext,
-			Cursor:  nextCursor,
-		}
-		util.SendJSON(w, http.StatusOK, resp)
-	})
-
-	r.Post("/", func(w http.ResponseWriter, r *http.Request) {
-		userID := r.Context().Value(mymiddleware.UserIDContextKey).(int32)
-
-		req, err := util.ParseAndValidateJSON(r, func(data *dto.CreateLinkReq) error {
-			return dto.Validate.Struct(data)
-		})
-
-		if err != nil {
-			util.SendError(w, apierror.NewApiError(400, "invalid request body", err))
-			return
-		}
-
-		retryCount := MAX_CONFLICT_RETRIES
-		code := ""
-
-		for retryCount > 0 {
-			code = util.GenerateRandomString(LENGTH_CODE)
-			_, err := repo.GetLinkByCodeWithDeleted(r.Context(), code)
-			if errors.Is(err, pgx.ErrNoRows) {
-				break // code is unique
-			} else if err != nil {
-				panic(err) // unexpected error
+			if err != nil {
+				panic(err)
 			}
 
-			retryCount--
-		}
+			hasNext := len(links) > intLimit // if we got more than the requested limit, there is a next page
 
-		if retryCount == 0 { // exhausted retries
-			util.SendError(w, apierror.NewApiError(500, "failed to generate unique code", nil))
-			return
-		}
+			var nextCursor *int32
+			if hasNext {
+				links = links[:intLimit]             // trim the extra record
+				nextCursor = &links[len(links)-1].ID // next cursor is the ID of the last record in the current page
+			}
 
-		link, err := repo.CreateLink(r.Context(), db.CreateLinkParams{
-			UserID:      userID,
-			Code:        code,
-			OriginalUrl: req.OriginalUrl,
+			resp := dto.LinksResponse{
+				Links:   LinksToDTO(links),
+				HasMore: hasNext,
+				Cursor:  nextCursor,
+			}
+			util.SendJSON(w, http.StatusOK, resp)
 		})
 
-		if err != nil {
-			panic(err)
-		}
+		r.Post("/", func(w http.ResponseWriter, r *http.Request) {
+			userID := r.Context().Value(mymiddleware.UserIDContextKey).(int32)
 
-		util.SendJSON(w, http.StatusCreated, link)
-	})
+			req, err := util.ParseAndValidateJSON(r, func(data *dto.CreateLinkReq) error {
+				return dto.Validate.Struct(data)
+			})
 
-	r.Delete("/{code}", func(w http.ResponseWriter, r *http.Request) {
-		userID := r.Context().Value(mymiddleware.UserIDContextKey).(int32)
-
-		code := chi.URLParam(r, "code")
-		if code == "" {
-			util.SendError(w, apierror.NewApiError(400, "code is required", nil))
-			return
-		}
-
-		_, err := repo.SetLinkDeleted(r.Context(), db.SetLinkDeletedParams{
-			Code:   code,
-			UserID: userID,
-		})
-		if err != nil {
-			if errors.Is(err, pgx.ErrNoRows) {
-				util.SendError(w, apierror.NewApiError(404, "link not found", nil))
+			if err != nil {
+				util.SendError(w, apierror.NewApiError(400, "invalid request body", err))
 				return
 			}
-			panic(err)
-		}
 
-		w.WriteHeader(http.StatusNoContent)
+			retryCount := MAX_CONFLICT_RETRIES
+			code := ""
+
+			for retryCount > 0 {
+				code = util.GenerateRandomString(LENGTH_CODE)
+				_, err := repo.GetLinkByCodeWithDeleted(r.Context(), code)
+				if errors.Is(err, pgx.ErrNoRows) {
+					break // code is unique
+				} else if err != nil {
+					panic(err) // unexpected error
+				}
+
+				retryCount--
+			}
+
+			if retryCount == 0 { // exhausted retries
+				util.SendError(w, apierror.NewApiError(500, "failed to generate unique code", nil))
+				return
+			}
+
+			link, err := repo.CreateLink(r.Context(), db.CreateLinkParams{
+				UserID:      userID,
+				Code:        code,
+				OriginalUrl: req.OriginalUrl,
+			})
+
+			if err != nil {
+				panic(err)
+			}
+
+			util.SendJSON(w, http.StatusCreated, link)
+		})
+
+		r.Delete("/{code}", func(w http.ResponseWriter, r *http.Request) {
+			userID := r.Context().Value(mymiddleware.UserIDContextKey).(int32)
+
+			code := chi.URLParam(r, "code")
+			if code == "" {
+				util.SendError(w, apierror.NewApiError(400, "code is required", nil))
+				return
+			}
+
+			_, err := repo.SetLinkDeleted(r.Context(), db.SetLinkDeletedParams{
+				Code:   code,
+				UserID: userID,
+			})
+			if err != nil {
+				if errors.Is(err, pgx.ErrNoRows) {
+					util.SendError(w, apierror.NewApiError(404, "link not found", nil))
+					return
+				}
+				panic(err)
+			}
+
+			w.WriteHeader(http.StatusNoContent)
+		})
 	})
 
 	return r
