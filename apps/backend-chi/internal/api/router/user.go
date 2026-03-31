@@ -46,7 +46,7 @@ var store = newStateStore() // In-memory store for OAuth states, may use redis o
 type UserRepository interface {
 	GetUserByID(ctx context.Context, id int32) (db.User, error)
 	DeleteUser(ctx context.Context, id int32) (db.User, error)
-	UpsertUser(ctx context.Context, arg *db.UpsertUserParams) (db.User, error)
+	UpsertUser(ctx context.Context, arg db.UpsertUserParams) (db.User, error)
 }
 
 func UserRouter(dep *dep.Dep, repo UserRepository, helper OauthHelper) http.Handler {
@@ -107,7 +107,13 @@ func UserRouter(dep *dep.Dep, repo UserRepository, helper OauthHelper) http.Hand
 				return
 			}
 
-			user, err := repo.UpsertUser(r.Context(), userInfo)
+			if userInfo == nil {
+				dep.Logger.Error("failed to get user info", "error", "user info is nil")
+				http.Redirect(w, r, util.AssembleURL(dep.Cfg.FrontendRedirectURL, "error", "failed to get user info"), http.StatusFound)
+				return
+			}
+
+			user, err := repo.UpsertUser(r.Context(), *userInfo)
 			if err != nil {
 				dep.Logger.Error("failed to upsert user", "error", err)
 				http.Redirect(w, r, util.AssembleURL(dep.Cfg.FrontendRedirectURL, "error", "failed to upsert user"), http.StatusFound)
@@ -125,9 +131,9 @@ func UserRouter(dep *dep.Dep, repo UserRepository, helper OauthHelper) http.Hand
 		})
 	})
 
-	r.Use(mymiddleware.Auth(dep.Cfg.JWTSecret))
-
 	r.Route("/me", func(r chi.Router) {
+		r.Use(mymiddleware.Auth(dep.Cfg.JWTSecret))
+
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			userID := r.Context().Value(mymiddleware.UserIDContextKey).(int32)
 
