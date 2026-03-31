@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -102,4 +103,13 @@ func GenerateRandomString(length int) string {
 		b64 = strings.NewReplacer("+", "", "/", "").Replace(b64)
 	}
 	return b64[:length]
+}
+
+func AssembleURL(baseURL, key string, value string) string {
+	u, _ := url.Parse(baseURL)
+
+	q := u.Query()
+	q.Set(key, value)
+	u.RawQuery = q.Encode()
+	return u.String()
 }

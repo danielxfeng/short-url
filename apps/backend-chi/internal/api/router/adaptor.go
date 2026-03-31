@@ -19,3 +19,13 @@ func LinksToDTO(links []db.Link) []dto.LinkResponse {
 	}
 	return result
 }
+
+func UserToDTO(user db.User) dto.UserResponse {
+	return dto.UserResponse{
+		ID:          user.ID,
+		Provider:    user.Provider,
+		ProviderID:  user.ProviderID,
+		DisplayName: user.DisplayName,
+		ProfilePic:  user.ProfilePic,
+	}
+}
