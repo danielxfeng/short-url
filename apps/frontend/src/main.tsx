@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import * as Sentry from '@sentry/react';
 import App from './App.tsx';
+import { BrowserRouter } from 'react-router';
+import { Toaster } from './components/ui/sonner.tsx';
 
 const container = document.getElementById('root');
 
@@ -23,6 +25,9 @@ const root = createRoot(container, {
 
 root.render(
   <Sentry.ErrorBoundary fallback={<div>Something went wrong.</div>}>
-    <App />
+    <BrowserRouter>
+      <App />
+      <Toaster richColors={true} />
+    </BrowserRouter>
   </Sentry.ErrorBoundary>,
 );
