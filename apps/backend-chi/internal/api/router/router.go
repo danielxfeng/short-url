@@ -38,12 +38,12 @@ func getCorsOptions(cfg *dep.Config) cors.Options {
 	return opt
 }
 
-func NewRouter(dep *dep.Dep) http.Handler {
+func NewRouter(dep *dep.Dep) *chi.Mux {
 	r := chi.NewRouter()
 
+	r.Use(middleware.RealIP)
 	r.Use(httplog.RequestLogger(dep.Logger, logOptions)) // It recovers panic
 	r.Use(mymiddleware.Helmet())
-	// r.Use(middleware.RealIP) enable if behind a proxy
 	r.Use(middleware.RequestID)
 	r.Use(middleware.CleanPath)
 

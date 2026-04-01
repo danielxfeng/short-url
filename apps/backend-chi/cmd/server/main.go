@@ -11,6 +11,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/auth"
+	sqlcdb "github.com/danielxfeng/short-url/apps/backend-chi/internal/api/repository/db"
+	stateStore "github.com/danielxfeng/short-url/apps/backend-chi/internal/api/repository/inmemory"
+	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/repository/models"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/router"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/dep"
 	"github.com/joho/godotenv"
@@ -26,8 +30,15 @@ func main() {
 	}
 	defer dep.CloseDep(d)
 
+	queries := sqlcdb.New(d.DbPool)
+	stateStore := stateStore.NewMemoryStateStore()
+	repo := models.NewRepository(queries, queries, stateStore)
+	oauthHandler := auth.NewGoogleOauth2Helper(d.Cfg)
+
 	// Init the API server
 	r := router.NewRouter(d)
+	r.Mount("/api/v1/user", router.UserRouter(d, repo, oauthHandler))
+	r.Mount("/api/v1/short-urls", router.ShortURLRouter(d, repo))
 	server := &http.Server{Addr: fmt.Sprintf("0.0.0.0:%d", d.Cfg.Port), Handler: r}
 
 	// Graceful shutdown
