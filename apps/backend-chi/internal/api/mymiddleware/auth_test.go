@@ -1,12 +1,14 @@
 package mymiddleware
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/auth"
+	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/dto"
 )
 
 func TestAuth(t *testing.T) {
@@ -94,6 +96,18 @@ func TestAuth(t *testing.T) {
 			}
 			if nextCalled != tc.wantNext {
 				t.Fatalf("expected next called %v, got %v", tc.wantNext, nextCalled)
+			}
+			if !tc.wantNext {
+				if got := rr.Header().Get("Content-Type"); got != "application/json" {
+					t.Fatalf("expected application/json content type, got %q", got)
+				}
+				var resp dto.APIErrorRes
+				if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
+					t.Fatalf("decode error response: %v", err)
+				}
+				if resp.Error != "Unauthorized" {
+					t.Fatalf("expected Unauthorized error, got %q", resp.Error)
+				}
 			}
 		})
 	}

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/apierror"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/auth"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/dto"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/mymiddleware"
@@ -110,12 +111,12 @@ func UserRouter(dep *dep.Dep, repo models.Repository, oauth auth.OauthHandler) h
 		r.Use(mymiddleware.Auth(dep.Cfg.JWTSecret))
 
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-			userID := r.Context().Value(mymiddleware.UserIDContextKey).(int32)
+			userID := mymiddleware.MustUserIDFromContext(r.Context())
 
 			user, err := repo.User.GetUserByID(r.Context(), userID)
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
-					http.Error(w, "user not found", http.StatusNotFound)
+					util.SendError(w, apierror.NewApiError(http.StatusNotFound, "user not found", nil))
 					return
 				}
 				panic(err)
@@ -125,12 +126,12 @@ func UserRouter(dep *dep.Dep, repo models.Repository, oauth auth.OauthHandler) h
 		})
 
 		r.Delete("/", func(w http.ResponseWriter, r *http.Request) {
-			userID := r.Context().Value(mymiddleware.UserIDContextKey).(int32)
+			userID := mymiddleware.MustUserIDFromContext(r.Context())
 
 			_, err := repo.User.DeleteUser(r.Context(), userID)
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
-					http.Error(w, "user not found", http.StatusNotFound)
+					util.SendError(w, apierror.NewApiError(http.StatusNotFound, "user not found", nil))
 					return
 				}
 				panic(err)

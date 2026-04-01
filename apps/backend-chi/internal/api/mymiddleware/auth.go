@@ -5,7 +5,9 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/apierror"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/auth"
+	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/util"
 )
 
 type contextKey string
@@ -18,12 +20,20 @@ func UserIDFromContext(ctx context.Context) (int32, bool) {
 	return userID, ok
 }
 
+func MustUserIDFromContext(ctx context.Context) int32 {
+	userID, ok := UserIDFromContext(ctx)
+	if !ok {
+		panic("user id missing from context")
+	}
+	return userID
+}
+
 func Auth(secret string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			bearer := r.Header.Get("Authorization")
 			if !strings.HasPrefix(bearer, "Bearer ") {
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				util.SendError(w, apierror.NewApiError(http.StatusUnauthorized, "Unauthorized", nil))
 				return
 			}
 
@@ -31,7 +41,7 @@ func Auth(secret string) func(http.Handler) http.Handler {
 
 			userID, err := auth.ValidateToken(token, secret)
 			if err != nil {
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				util.SendError(w, apierror.NewApiError(http.StatusUnauthorized, "Unauthorized", nil))
 				return
 			}
 

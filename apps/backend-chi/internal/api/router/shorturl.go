@@ -74,7 +74,7 @@ func ShortURLRouter(dep *dep.Dep, repo models.Repository) http.Handler {
 		r.Use(mymiddleware.Auth(dep.Cfg.JWTSecret))
 
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-			userID := r.Context().Value(mymiddleware.UserIDContextKey).(int32)
+			userID := mymiddleware.MustUserIDFromContext(r.Context())
 			limit := util.ParseInt32ClampedOrDefault(r.URL.Query().Get("limit"), DEFAULT_LIMIT, MIN_LIMIT, MAX_LIMIT)
 			cursor := util.ParseInt32ClampedOrDefault(r.URL.Query().Get("cursor"), DEFAULT_CURSOR, MIN_CURSOR, MAX_CURSOR)
 			intLimit := int(limit)
@@ -106,7 +106,7 @@ func ShortURLRouter(dep *dep.Dep, repo models.Repository) http.Handler {
 		})
 
 		r.Post("/", func(w http.ResponseWriter, r *http.Request) {
-			userID := r.Context().Value(mymiddleware.UserIDContextKey).(int32)
+			userID := mymiddleware.MustUserIDFromContext(r.Context())
 
 			req, err := util.ParseAndValidateJSON(r, func(data *dto.CreateLinkReq) error {
 				return dto.Validate.Struct(data)
@@ -151,7 +151,7 @@ func ShortURLRouter(dep *dep.Dep, repo models.Repository) http.Handler {
 		})
 
 		r.Delete("/{code}", func(w http.ResponseWriter, r *http.Request) {
-			userID := r.Context().Value(mymiddleware.UserIDContextKey).(int32)
+			userID := mymiddleware.MustUserIDFromContext(r.Context())
 
 			code := chi.URLParam(r, "code")
 			if code == "" {
