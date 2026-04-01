@@ -2,11 +2,6 @@ package statestore
 
 import "sync"
 
-type StateStore interface {
-	Add(state string, verifier string)
-	GetAndDelete(state string) string
-}
-
 type MemoryStateStore struct {
 	mu     sync.Mutex
 	Status map[string]string // state -> verifier

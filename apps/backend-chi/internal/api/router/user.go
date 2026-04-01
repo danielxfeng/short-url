@@ -1,28 +1,20 @@
 package router
 
 import (
-	"context"
 	"errors"
 	"net/http"
 
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/auth"
-	db "github.com/danielxfeng/short-url/apps/backend-chi/internal/api/db/sqlc"
-	stateStore "github.com/danielxfeng/short-url/apps/backend-chi/internal/api/db/statestore"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/dto"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/mymiddleware"
+	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/repository/models"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/util"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/dep"
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
 )
 
-type UserRepository interface {
-	GetUserByID(ctx context.Context, id int32) (db.User, error)
-	DeleteUser(ctx context.Context, id int32) (db.User, error)
-	UpsertUser(ctx context.Context, arg db.UpsertUserParams) (db.User, error)
-}
-
-func UserToDTO(user db.User) dto.UserResponse {
+func UserToDTO(user models.User) dto.UserResponse {
 	return dto.UserResponse{
 		ID:          user.ID,
 		Provider:    user.Provider,
@@ -32,7 +24,7 @@ func UserToDTO(user db.User) dto.UserResponse {
 	}
 }
 
-func UserRouter(dep *dep.Dep, repo UserRepository, oauth auth.OauthHandler, store stateStore.StateStore) http.Handler {
+func UserRouter(dep *dep.Dep, repo models.Repository, oauth auth.OauthHandler) http.Handler {
 	r := chi.NewRouter()
 
 	r.Route("/auth", func(r chi.Router) {
@@ -44,7 +36,7 @@ func UserRouter(dep *dep.Dep, repo UserRepository, oauth auth.OauthHandler, stor
 				return
 			}
 
-			url := oauth.GetOauthAuthURL(&oauthCfg.Config, store)
+			url := oauth.GetOauthAuthURL(&oauthCfg.Config, repo.State)
 			http.Redirect(w, r, url, http.StatusFound)
 		})
 
@@ -63,7 +55,7 @@ func UserRouter(dep *dep.Dep, repo UserRepository, oauth auth.OauthHandler, stor
 				return
 			}
 
-			verifier := store.GetAndDelete(state)
+			verifier := repo.State.GetAndDelete(state)
 			if verifier == "" {
 				http.Redirect(w, r, util.AssembleURL(dep.Cfg.FrontendRedirectURL, "error", "invalid state"), http.StatusFound)
 				return
@@ -96,7 +88,7 @@ func UserRouter(dep *dep.Dep, repo UserRepository, oauth auth.OauthHandler, stor
 				return
 			}
 
-			user, err := repo.UpsertUser(r.Context(), *userInfo)
+			user, err := repo.User.UpsertUser(r.Context(), *userInfo)
 			if err != nil {
 				dep.Logger.Error("failed to upsert user", "error", err)
 				http.Redirect(w, r, util.AssembleURL(dep.Cfg.FrontendRedirectURL, "error", "failed to upsert user"), http.StatusFound)
@@ -120,7 +112,7 @@ func UserRouter(dep *dep.Dep, repo UserRepository, oauth auth.OauthHandler, stor
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			userID := r.Context().Value(mymiddleware.UserIDContextKey).(int32)
 
-			user, err := repo.GetUserByID(r.Context(), userID)
+			user, err := repo.User.GetUserByID(r.Context(), userID)
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
 					http.Error(w, "user not found", http.StatusNotFound)
@@ -135,7 +127,7 @@ func UserRouter(dep *dep.Dep, repo UserRepository, oauth auth.OauthHandler, stor
 		r.Delete("/", func(w http.ResponseWriter, r *http.Request) {
 			userID := r.Context().Value(mymiddleware.UserIDContextKey).(int32)
 
-			_, err := repo.DeleteUser(r.Context(), userID)
+			_, err := repo.User.DeleteUser(r.Context(), userID)
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
 					http.Error(w, "user not found", http.StatusNotFound)

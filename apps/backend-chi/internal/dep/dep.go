@@ -4,8 +4,8 @@ import (
 	"log/slog"
 	"time"
 
-	db "github.com/danielxfeng/short-url/apps/backend-chi/internal/api/db/sqlc"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/dto"
+	db "github.com/danielxfeng/short-url/apps/backend-chi/internal/api/repository/db"
 	"github.com/getsentry/sentry-go"
 	"github.com/jackc/pgx/v5/pgxpool"
 )

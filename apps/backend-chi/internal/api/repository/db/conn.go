@@ -19,7 +19,7 @@ func migrationsDirURL() (string, error) {
 		return "", errors.New("cannot resolve migrations path")
 	}
 
-	path := filepath.Join(filepath.Dir(file), "..", "query", "migrations")
+	path := filepath.Join(filepath.Dir(file), "query", "migrations")
 	abs, err := filepath.Abs(path)
 	if err != nil {
 		return "", err

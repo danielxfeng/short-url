@@ -3,16 +3,16 @@ package router
 import (
 	"testing"
 
-	db "github.com/danielxfeng/short-url/apps/backend-chi/internal/api/db/sqlc"
+	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/repository/models"
 )
 
 func TestUserToDTO(t *testing.T) {
 	name := "tester"
 	pic := "https://example.com/pic.png"
 
-	user := db.User{
+	user := models.User{
 		ID:          7,
-		Provider:    db.ProviderEnumGITHUB,
+		Provider:    models.ProviderEnumGITHUB,
 		ProviderID:  "12345",
 		DisplayName: &name,
 		ProfilePic:  &pic,

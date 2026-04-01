@@ -3,7 +3,7 @@ package dto
 import (
 	"testing"
 
-	sqlcdb "github.com/danielxfeng/short-url/apps/backend-chi/internal/api/db/sqlc"
+	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/repository/models"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -190,7 +190,7 @@ func TestUpsertUserReqValidation(t *testing.T) {
 		{
 			name: "required provider and provider_id applied",
 			in: UpsertUserReq{
-				Provider:   sqlcdb.ProviderEnumGOOGLE,
+				Provider:   models.ProviderEnumGOOGLE,
 				ProviderID: "provider-id",
 			},
 			wantPass: true,
@@ -222,7 +222,7 @@ func TestUpsertUserReqValidation(t *testing.T) {
 		{
 			name: "trim applied to provider_id",
 			in: UpsertUserReq{
-				Provider:   sqlcdb.ProviderEnumGOOGLE,
+				Provider:   models.ProviderEnumGOOGLE,
 				ProviderID: "  id  ",
 			},
 			wantPass: true,
@@ -230,7 +230,7 @@ func TestUpsertUserReqValidation(t *testing.T) {
 		{
 			name: "min rule applied to provider_id",
 			in: UpsertUserReq{
-				Provider:   sqlcdb.ProviderEnumGOOGLE,
+				Provider:   models.ProviderEnumGOOGLE,
 				ProviderID: "",
 			},
 			wantPass: false,
@@ -238,7 +238,7 @@ func TestUpsertUserReqValidation(t *testing.T) {
 		{
 			name: "omitempty allows nil display_name",
 			in: UpsertUserReq{
-				Provider:    sqlcdb.ProviderEnumGOOGLE,
+				Provider:    models.ProviderEnumGOOGLE,
 				ProviderID:  "provider-id",
 				DisplayName: nil,
 			},
@@ -247,7 +247,7 @@ func TestUpsertUserReqValidation(t *testing.T) {
 		{
 			name: "trim applied to display_name",
 			in: UpsertUserReq{
-				Provider:    sqlcdb.ProviderEnumGOOGLE,
+				Provider:    models.ProviderEnumGOOGLE,
 				ProviderID:  "provider-id",
 				DisplayName: strPtr("  Alice  "),
 			},
@@ -256,7 +256,7 @@ func TestUpsertUserReqValidation(t *testing.T) {
 		{
 			name: "min rule applied to display_name",
 			in: UpsertUserReq{
-				Provider:    sqlcdb.ProviderEnumGOOGLE,
+				Provider:    models.ProviderEnumGOOGLE,
 				ProviderID:  "provider-id",
 				DisplayName: strPtr(""),
 			},
@@ -265,7 +265,7 @@ func TestUpsertUserReqValidation(t *testing.T) {
 		{
 			name: "omitempty allows nil profile_pic",
 			in: UpsertUserReq{
-				Provider:   sqlcdb.ProviderEnumGOOGLE,
+				Provider:   models.ProviderEnumGOOGLE,
 				ProviderID: "provider-id",
 				ProfilePic: nil,
 			},

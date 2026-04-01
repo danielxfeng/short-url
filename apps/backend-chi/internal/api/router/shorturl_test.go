@@ -4,14 +4,14 @@ import (
 	"testing"
 	"time"
 
-	db "github.com/danielxfeng/short-url/apps/backend-chi/internal/api/db/sqlc"
+	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/repository/models"
 )
 
 func TestLinksToDTO(t *testing.T) {
 	now := time.Now().UTC()
 	deletedAt := now.Add(2 * time.Hour)
 
-	links := []db.Link{
+	links := []models.Link{
 		{
 			ID:          1,
 			UserID:      10,

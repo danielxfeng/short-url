@@ -18,8 +18,9 @@ import (
 	"time"
 
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/auth"
-	db "github.com/danielxfeng/short-url/apps/backend-chi/internal/api/db/sqlc"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/dto"
+	db "github.com/danielxfeng/short-url/apps/backend-chi/internal/api/repository/db"
+	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/repository/models"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/dep"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -106,6 +107,43 @@ func newShortURLIntegrationSetup(t *testing.T, userID int32) (*dep.Dep, *db.Quer
 	return d, q, token
 }
 
+func newShortURLTestRepo(q *db.Queries) models.Repository {
+	return models.NewRepository(q, q, nil)
+}
+
+type shortURLTestApp struct {
+	dep     *dep.Dep
+	q       *db.Queries
+	repo    models.Repository
+	handler http.Handler
+}
+
+func newShortURLTestApp(t *testing.T, userID int32) (*shortURLTestApp, string) {
+	t.Helper()
+	d, q, token := newShortURLIntegrationSetup(t, userID)
+	repo := newShortURLTestRepo(q)
+	return &shortURLTestApp{
+		dep:     d,
+		q:       q,
+		repo:    repo,
+		handler: ShortURLRouter(d, repo),
+	}, token
+}
+
+func (a *shortURLTestApp) seedUser(t *testing.T, providerID string) db.User {
+	return seedUser(t, a.q, providerID)
+}
+
+func (a *shortURLTestApp) seedLink(t *testing.T, userID int32, code string) db.Link {
+	return seedLink(t, a.q, userID, code)
+}
+
+func (a *shortURLTestApp) serve(req *http.Request) *httptest.ResponseRecorder {
+	rr := httptest.NewRecorder()
+	a.handler.ServeHTTP(rr, req)
+	return rr
+}
+
 func seedUser(t *testing.T, q *db.Queries, providerID string) db.User {
 	t.Helper()
 	name := "name-" + providerID
@@ -146,14 +184,13 @@ func authedReq(method string, path string, token string, body []byte) *http.Requ
 }
 
 func TestShortURLRouter_GetRedirect(t *testing.T) {
-	d, q, _ := newShortURLIntegrationSetup(t, 42)
-	u := seedUser(t, q, "redirect-user")
-	seed := seedLink(t, q, u.ID, "abc12345")
-	deleted := seedLink(t, q, u.ID, "deleted01")
-	if _, err := q.SetLinkDeleted(context.Background(), db.SetLinkDeletedParams{Code: deleted.Code, UserID: u.ID}); err != nil {
+	app, _ := newShortURLTestApp(t, 42)
+	u := app.seedUser(t, "redirect-user")
+	seed := app.seedLink(t, u.ID, "abc12345")
+	deleted := app.seedLink(t, u.ID, "deleted01")
+	if _, err := app.q.SetLinkDeleted(context.Background(), db.SetLinkDeletedParams{Code: deleted.Code, UserID: u.ID}); err != nil {
 		t.Fatalf("seed deleted link: %v", err)
 	}
-	h := ShortURLRouter(d, q)
 
 	testCases := []struct {
 		name          string
@@ -162,14 +199,13 @@ func TestShortURLRouter_GetRedirect(t *testing.T) {
 		verifyClicked bool
 	}{
 		{name: "existing code redirects to original url", path: "/" + seed.Code, wantLocation: seed.OriginalUrl, verifyClicked: true},
-		{name: "soft deleted code redirects to not found page", path: "/" + deleted.Code, wantLocation: d.Cfg.NotFoundPage},
-		{name: "missing code redirects to not found page", path: "/missing", wantLocation: d.Cfg.NotFoundPage},
+		{name: "soft deleted code redirects to not found page", path: "/" + deleted.Code, wantLocation: app.dep.Cfg.NotFoundPage},
+		{name: "missing code redirects to not found page", path: "/missing", wantLocation: app.dep.Cfg.NotFoundPage},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			rr := httptest.NewRecorder()
-			h.ServeHTTP(rr, httptest.NewRequest(http.MethodGet, tc.path, nil))
+			rr := app.serve(httptest.NewRequest(http.MethodGet, tc.path, nil))
 
 			if rr.Code != http.StatusFound {
 				t.Fatalf("expected %d, got %d", http.StatusFound, rr.Code)
@@ -184,7 +220,7 @@ func TestShortURLRouter_GetRedirect(t *testing.T) {
 
 			deadline := time.Now().Add(800 * time.Millisecond)
 			for {
-				got, err := q.GetLinkByCode(context.Background(), seed.Code)
+				got, err := app.q.GetLinkByCode(context.Background(), seed.Code)
 				if err == nil && got.Clicks > seed.Clicks {
 					break
 				}
@@ -198,8 +234,7 @@ func TestShortURLRouter_GetRedirect(t *testing.T) {
 }
 
 func TestShortURLRouter_AuthRequiredForProtectedEndpoints(t *testing.T) {
-	d, q, _ := newShortURLIntegrationSetup(t, 42)
-	h := ShortURLRouter(d, q)
+	app, _ := newShortURLTestApp(t, 42)
 
 	testCases := []struct {
 		name    string
@@ -212,8 +247,7 @@ func TestShortURLRouter_AuthRequiredForProtectedEndpoints(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			rr := httptest.NewRecorder()
-			h.ServeHTTP(rr, tc.request)
+			rr := app.serve(tc.request)
 			if rr.Code != http.StatusUnauthorized {
 				t.Fatalf("expected %d, got %d", http.StatusUnauthorized, rr.Code)
 			}
@@ -308,7 +342,7 @@ func TestShortURLRouter_ListRequiresAuthAndSupportsPagination(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			d, q, _ := newShortURLIntegrationSetup(t, 42)
-			h := ShortURLRouter(d, q)
+			h := ShortURLRouter(d, newShortURLTestRepo(q))
 			u := seedUser(t, q, "list-user")
 			other := seedUser(t, q, "list-other")
 			token, err := auth.GenerateToken(u.ID, d.Cfg.JWTSecret, d.Cfg.JWTExpiry)
@@ -387,7 +421,7 @@ func TestShortURLRouter_ListRequiresAuthAndSupportsPagination(t *testing.T) {
 
 func TestShortURLRouter_ListExcludesSoftDeletedLinks(t *testing.T) {
 	d, q, _ := newShortURLIntegrationSetup(t, 42)
-	h := ShortURLRouter(d, q)
+	h := ShortURLRouter(d, newShortURLTestRepo(q))
 	u := seedUser(t, q, "list-soft-user")
 	token, err := auth.GenerateToken(u.ID, d.Cfg.JWTSecret, d.Cfg.JWTExpiry)
 	if err != nil {
@@ -476,7 +510,7 @@ func TestShortURLRouter_ListPaginationNormalizationBoundaries(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			d, q, _ := newShortURLIntegrationSetup(t, 42)
-			h := ShortURLRouter(d, q)
+			h := ShortURLRouter(d, newShortURLTestRepo(q))
 			u := seedUser(t, q, "list-normalize-user")
 			token, err := auth.GenerateToken(u.ID, d.Cfg.JWTSecret, d.Cfg.JWTExpiry)
 			if err != nil {
@@ -517,7 +551,7 @@ func TestShortURLRouter_ListPaginationNormalizationBoundaries(t *testing.T) {
 
 func TestShortURLRouter_CreateAndDelete(t *testing.T) {
 	d, q, _ := newShortURLIntegrationSetup(t, 42)
-	h := ShortURLRouter(d, q)
+	h := ShortURLRouter(d, newShortURLTestRepo(q))
 	u := seedUser(t, q, "create-delete-user")
 	tokenForUser, err := auth.GenerateToken(u.ID, d.Cfg.JWTSecret, d.Cfg.JWTExpiry)
 	if err != nil {
@@ -571,7 +605,7 @@ func TestShortURLRouter_CreateAndDelete(t *testing.T) {
 
 func TestShortURLRouter_DeleteForeignOwnedLinkReturnsNotFound(t *testing.T) {
 	d, q, _ := newShortURLIntegrationSetup(t, 42)
-	h := ShortURLRouter(d, q)
+	h := ShortURLRouter(d, newShortURLTestRepo(q))
 
 	owner := seedUser(t, q, "owner-user")
 	attacker := seedUser(t, q, "attacker-user")
@@ -599,7 +633,7 @@ func TestShortURLRouter_DeleteForeignOwnedLinkReturnsNotFound(t *testing.T) {
 
 func TestShortURLRouter_CreateValidationError(t *testing.T) {
 	d, q, token := newShortURLIntegrationSetup(t, 42)
-	h := ShortURLRouter(d, q)
+	h := ShortURLRouter(d, newShortURLTestRepo(q))
 	_ = seedUser(t, q, "validation-user")
 
 	badBody := []byte(`{"original_url":"not-a-url"}`)
@@ -613,7 +647,7 @@ func TestShortURLRouter_CreateValidationError(t *testing.T) {
 
 func TestShortURLRouter_CreateMalformedJSONError(t *testing.T) {
 	d, q, token := newShortURLIntegrationSetup(t, 42)
-	h := ShortURLRouter(d, q)
+	h := ShortURLRouter(d, newShortURLTestRepo(q))
 	_ = seedUser(t, q, "malformed-user")
 
 	badBody := []byte(`{"original_url":`)

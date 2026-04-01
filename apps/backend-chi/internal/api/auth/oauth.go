@@ -7,8 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	db "github.com/danielxfeng/short-url/apps/backend-chi/internal/api/db/sqlc"
-	stateStore "github.com/danielxfeng/short-url/apps/backend-chi/internal/api/db/statestore"
+	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/repository/models"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/dep"
 	"golang.org/x/oauth2"
 )
@@ -24,24 +23,24 @@ const (
 
 type OauthHandler interface {
 	GetConfigForProvider(provider string) (*OauthConfig, bool)
-	GetOauthAuthURL(opt *oauth2.Config, store stateStore.StateStore) string
+	GetOauthAuthURL(opt *oauth2.Config, stateRepo models.StateStoreRepository) string
 	ExchangeCodeAndGetClient(ctx context.Context, opt *oauth2.Config, code string, verifier string) (*http.Client, error)
 }
 
 type OauthConfig struct {
 	Config      oauth2.Config
-	GetUserInfo func(client *http.Client) (*db.UpsertUserParams, error)
+	GetUserInfo func(client *http.Client) (*models.UpsertUserParams, error)
 }
 
 type GoogleOauth2Helper struct {
-	Configs map[db.ProviderEnum]OauthConfig
+	Configs map[models.ProviderEnum]OauthConfig
 }
 
 func NewGoogleOauth2Helper(cfg *dep.Config) *GoogleOauth2Helper {
-	configs := make(map[db.ProviderEnum]OauthConfig)
+	configs := make(map[models.ProviderEnum]OauthConfig)
 
 	if cfg.GoogleClientID != "" && cfg.GoogleClientSecret != "" {
-		configs[db.ProviderEnumGOOGLE] = OauthConfig{
+		configs[models.ProviderEnumGOOGLE] = OauthConfig{
 			Config: oauth2.Config{
 				ClientID:     cfg.GoogleClientID,
 				ClientSecret: cfg.GoogleClientSecret,
@@ -57,7 +56,7 @@ func NewGoogleOauth2Helper(cfg *dep.Config) *GoogleOauth2Helper {
 	}
 
 	if cfg.GithubClientID != "" && cfg.GithubClientSecret != "" {
-		configs[db.ProviderEnumGITHUB] = OauthConfig{
+		configs[models.ProviderEnumGITHUB] = OauthConfig{
 			Config: oauth2.Config{
 				ClientID:     cfg.GithubClientID,
 				ClientSecret: cfg.GithubClientSecret,
@@ -77,14 +76,14 @@ func NewGoogleOauth2Helper(cfg *dep.Config) *GoogleOauth2Helper {
 
 func (h *GoogleOauth2Helper) GetConfigForProvider(provider string) (*OauthConfig, bool) {
 	provider = strings.TrimSpace(strings.ToUpper(provider))
-	config, ok := h.Configs[db.ProviderEnum(provider)]
+	config, ok := h.Configs[models.ProviderEnum(provider)]
 	return &config, ok
 }
 
-func (h *GoogleOauth2Helper) GetOauthAuthURL(opt *oauth2.Config, store stateStore.StateStore) string {
+func (h *GoogleOauth2Helper) GetOauthAuthURL(opt *oauth2.Config, stateRepo models.StateStoreRepository) string {
 	varifier := oauth2.GenerateVerifier()
 	state := oauth2.GenerateVerifier()
-	store.Add(state, varifier)
+	stateRepo.Add(state, varifier)
 
 	return opt.AuthCodeURL(state, oauth2.AccessTypeOffline, oauth2.S256ChallengeOption(varifier))
 }
@@ -134,7 +133,7 @@ func getRequiredStringField(data map[string]interface{}, key string) (string, er
 	}
 }
 
-func getAndParseGoogleUserInfo(client *http.Client) (*db.UpsertUserParams, error) {
+func getAndParseGoogleUserInfo(client *http.Client) (*models.UpsertUserParams, error) {
 	data, err := getAndParseUserInfo(client, GoogleUserInfoURL)
 
 	if err != nil {
@@ -160,15 +159,15 @@ func getAndParseGoogleUserInfo(client *http.Client) (*db.UpsertUserParams, error
 		profilePic = ""
 	}
 
-	return &db.UpsertUserParams{
-		Provider:    db.ProviderEnumGOOGLE,
+	return &models.UpsertUserParams{
+		Provider:    models.ProviderEnumGOOGLE,
 		ProviderID:  providerID,
 		DisplayName: displayName,
 		ProfilePic:  &profilePic,
 	}, nil
 }
 
-func getAndParseGithubUserInfo(client *http.Client) (*db.UpsertUserParams, error) {
+func getAndParseGithubUserInfo(client *http.Client) (*models.UpsertUserParams, error) {
 	data, err := getAndParseUserInfo(client, GithubUserInfoURL)
 
 	if err != nil {
@@ -194,8 +193,8 @@ func getAndParseGithubUserInfo(client *http.Client) (*db.UpsertUserParams, error
 		profilePic = nil
 	}
 
-	return &db.UpsertUserParams{
-		Provider:    db.ProviderEnumGITHUB,
+	return &models.UpsertUserParams{
+		Provider:    models.ProviderEnumGITHUB,
 		ProviderID:  providerID,
 		DisplayName: displayName,
 		ProfilePic:  profilePic,

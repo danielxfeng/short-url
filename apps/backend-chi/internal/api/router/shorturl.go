@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/apierror"
-	db "github.com/danielxfeng/short-url/apps/backend-chi/internal/api/db/sqlc"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/dto"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/mymiddleware"
+	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/repository/models"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/util"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/dep"
 	"github.com/go-chi/chi/v5"
@@ -26,16 +26,7 @@ const DEFAULT_CURSOR = MAX_CURSOR
 const MAX_CONFLICT_RETRIES = 5
 const LENGTH_CODE = 8
 
-type ShortURLRepository interface {
-	CreateLink(ctx context.Context, arg db.CreateLinkParams) (db.Link, error)
-	GetLinkByCode(ctx context.Context, code string) (db.Link, error)
-	GetLinkByCodeWithDeleted(ctx context.Context, code string) (db.Link, error)
-	GetLinksByUserID(ctx context.Context, arg db.GetLinksByUserIDParams) ([]db.Link, error)
-	SetLinkDeleted(ctx context.Context, arg db.SetLinkDeletedParams) (int32, error)
-	SetLinkClicked(ctx context.Context, code string) (int32, error)
-}
-
-func LinksToDTO(links []db.Link) []dto.LinkResponse {
+func LinksToDTO(links []models.Link) []dto.LinkResponse {
 	result := make([]dto.LinkResponse, len(links))
 	for i, link := range links {
 		result[i] = dto.LinkResponse{
@@ -50,12 +41,12 @@ func LinksToDTO(links []db.Link) []dto.LinkResponse {
 	return result
 }
 
-func ShortURLRouter(dep *dep.Dep, repo ShortURLRepository) http.Handler {
+func ShortURLRouter(dep *dep.Dep, repo models.Repository) http.Handler {
 	r := chi.NewRouter()
 
 	r.Get("/{code}", func(w http.ResponseWriter, r *http.Request) {
 		code := chi.URLParam(r, "code")
-		link, err := repo.GetLinkByCode(r.Context(), code)
+		link, err := repo.Link.GetLinkByCode(r.Context(), code)
 
 		if err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
@@ -71,7 +62,7 @@ func ShortURLRouter(dep *dep.Dep, repo ShortURLRepository) http.Handler {
 		go func() {
 			defer cancel()
 
-			_, err := repo.SetLinkClicked(ctx, link.Code)
+			_, err := repo.Link.SetLinkClicked(ctx, link.Code)
 			if err != nil {
 				dep.Logger.Error("Failed to update click count", "error", err)
 			}
@@ -88,7 +79,7 @@ func ShortURLRouter(dep *dep.Dep, repo ShortURLRepository) http.Handler {
 			cursor := util.ParseInt32ClampedOrDefault(r.URL.Query().Get("cursor"), DEFAULT_CURSOR, MIN_CURSOR, MAX_CURSOR)
 			intLimit := int(limit)
 
-			links, err := repo.GetLinksByUserID(r.Context(), db.GetLinksByUserIDParams{
+			links, err := repo.Link.GetLinksByUserID(r.Context(), models.GetLinksByUserIDParams{
 				UserID: userID,
 				Limit:  limit + 1, // fetch one extra to check if there's a next page
 				ID:     cursor,
@@ -131,7 +122,7 @@ func ShortURLRouter(dep *dep.Dep, repo ShortURLRepository) http.Handler {
 
 			for retryCount > 0 {
 				code = util.GenerateRandomString(LENGTH_CODE)
-				_, err := repo.GetLinkByCodeWithDeleted(r.Context(), code)
+				_, err := repo.Link.GetLinkByCodeWithDeleted(r.Context(), code)
 				if errors.Is(err, pgx.ErrNoRows) {
 					break // code is unique
 				} else if err != nil {
@@ -146,7 +137,7 @@ func ShortURLRouter(dep *dep.Dep, repo ShortURLRepository) http.Handler {
 				return
 			}
 
-			link, err := repo.CreateLink(r.Context(), db.CreateLinkParams{
+			link, err := repo.Link.CreateLink(r.Context(), models.CreateLinkParams{
 				UserID:      userID,
 				Code:        code,
 				OriginalUrl: req.OriginalUrl,
@@ -168,7 +159,7 @@ func ShortURLRouter(dep *dep.Dep, repo ShortURLRepository) http.Handler {
 				return
 			}
 
-			_, err := repo.SetLinkDeleted(r.Context(), db.SetLinkDeletedParams{
+			_, err := repo.Link.SetLinkDeleted(r.Context(), models.SetLinkDeletedParams{
 				Code:   code,
 				UserID: userID,
 			})
