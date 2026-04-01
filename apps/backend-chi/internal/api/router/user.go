@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	"sync"
 
+	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/auth"
 	db "github.com/danielxfeng/short-url/apps/backend-chi/internal/api/db/sqlc"
+	stateStore "github.com/danielxfeng/short-url/apps/backend-chi/internal/api/db/statestore"
+	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/dto"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/mymiddleware"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/util"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/dep"
@@ -14,54 +16,35 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-type StateStore struct {
-	mu     sync.Mutex
-	Status map[string]string // state -> verifier
-}
-
-func newStateStore() *StateStore {
-	return &StateStore{
-		Status: make(map[string]string),
-	}
-}
-
-func (s *StateStore) Add(state string, verifier string) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.Status[state] = verifier
-}
-
-func (s *StateStore) GetAndDelete(state string) string {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	verifier, exists := s.Status[state]
-	if exists {
-		delete(s.Status, state) // State is single-use, delete it after validating
-	}
-	return verifier
-}
-
-var store = newStateStore() // In-memory store for OAuth states, may use redis or db in production
-
 type UserRepository interface {
 	GetUserByID(ctx context.Context, id int32) (db.User, error)
 	DeleteUser(ctx context.Context, id int32) (db.User, error)
 	UpsertUser(ctx context.Context, arg db.UpsertUserParams) (db.User, error)
 }
 
-func UserRouter(dep *dep.Dep, repo UserRepository, helper OauthHelper) http.Handler {
+func UserToDTO(user db.User) dto.UserResponse {
+	return dto.UserResponse{
+		ID:          user.ID,
+		Provider:    user.Provider,
+		ProviderID:  user.ProviderID,
+		DisplayName: user.DisplayName,
+		ProfilePic:  user.ProfilePic,
+	}
+}
+
+func UserRouter(dep *dep.Dep, repo UserRepository, oauth auth.OauthHandler, store stateStore.StateStore) http.Handler {
 	r := chi.NewRouter()
 
 	r.Route("/auth", func(r chi.Router) {
 		r.Get("/{provider}", func(w http.ResponseWriter, r *http.Request) {
 			provider := chi.URLParam(r, "provider")
-			oauthCfg, ok := helper.GetConfigForProvider(provider)
+			oauthCfg, ok := oauth.GetConfigForProvider(provider)
 			if !ok {
 				http.Redirect(w, r, util.AssembleURL(dep.Cfg.FrontendRedirectURL, "error", "unsupported provider"), http.StatusFound)
 				return
 			}
 
-			url := helper.GetOauthAuthURL(&oauthCfg.Config, store)
+			url := oauth.GetOauthAuthURL(&oauthCfg.Config, store)
 			http.Redirect(w, r, url, http.StatusFound)
 		})
 
@@ -86,14 +69,14 @@ func UserRouter(dep *dep.Dep, repo UserRepository, helper OauthHelper) http.Hand
 				return
 			}
 
-			oauthCfg, ok := helper.GetConfigForProvider(provider)
+			oauthCfg, ok := oauth.GetConfigForProvider(provider)
 			if !ok {
 				dep.Logger.Warn("unsupported provider", "provider", provider)
 				http.Redirect(w, r, util.AssembleURL(dep.Cfg.FrontendRedirectURL, "error", "unsupported provider"), http.StatusFound)
 				return
 			}
 
-			client, err := helper.ExchangeCodeAndGetClient(r.Context(), &oauthCfg.Config, code, verifier)
+			client, err := oauth.ExchangeCodeAndGetClient(r.Context(), &oauthCfg.Config, code, verifier)
 			if err != nil {
 				dep.Logger.Warn("failed to exchange code for token", "error", err)
 				http.Redirect(w, r, util.AssembleURL(dep.Cfg.FrontendRedirectURL, "error", "failed to exchange code for token"), http.StatusFound)
@@ -120,7 +103,7 @@ func UserRouter(dep *dep.Dep, repo UserRepository, helper OauthHelper) http.Hand
 				return
 			}
 
-			token, err := util.GenerateToken(user.ID, dep.Cfg.JWTSecret, dep.Cfg.JWTExpiry)
+			token, err := auth.GenerateToken(user.ID, dep.Cfg.JWTSecret, dep.Cfg.JWTExpiry)
 			if err != nil {
 				dep.Logger.Error("failed to generate token", "error", err)
 				http.Redirect(w, r, util.AssembleURL(dep.Cfg.FrontendRedirectURL, "error", "failed to generate token"), http.StatusFound)

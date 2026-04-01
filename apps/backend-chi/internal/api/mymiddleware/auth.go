@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/util"
+	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/auth"
 )
 
 type contextKey string
@@ -29,7 +29,7 @@ func Auth(secret string) func(http.Handler) http.Handler {
 
 			token := strings.TrimPrefix(bearer, "Bearer ")
 
-			userID, err := util.ValidateToken(token, secret)
+			userID, err := auth.ValidateToken(token, secret)
 			if err != nil {
 				http.Error(w, "Unauthorized", http.StatusUnauthorized)
 				return

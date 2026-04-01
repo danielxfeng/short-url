@@ -13,15 +13,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/auth"
 	db "github.com/danielxfeng/short-url/apps/backend-chi/internal/api/db/sqlc"
+	stateStore "github.com/danielxfeng/short-url/apps/backend-chi/internal/api/db/statestore"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/dto"
-	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/util"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/dep"
 	"golang.org/x/oauth2"
 )
 
 type mockGoogleOauth2Helper struct {
-	config           OauthConfig
+	config           auth.OauthConfig
 	exchangeErr      error
 	expectedVerifier string
 	nextState        string
@@ -36,7 +37,7 @@ func newMockGoogleOauth2Helper() *mockGoogleOauth2Helper {
 		expectedVerifier: "mock-verifier",
 		nextState:        "mock-state",
 		authURLBase:      "https://accounts.google.com/o/oauth2/v2/auth",
-		config: OauthConfig{
+		config: auth.OauthConfig{
 			Config: oauth2.Config{ClientID: "mock-google-client-id"},
 			GetUserInfo: func(client *http.Client) (*db.UpsertUserParams, error) {
 				_ = client
@@ -51,7 +52,7 @@ func newMockGoogleOauth2Helper() *mockGoogleOauth2Helper {
 	}
 }
 
-func (m *mockGoogleOauth2Helper) GetConfigForProvider(provider string) (*OauthConfig, bool) {
+func (m *mockGoogleOauth2Helper) GetConfigForProvider(provider string) (*auth.OauthConfig, bool) {
 	if strings.EqualFold(strings.TrimSpace(provider), "google") {
 		cfg := m.config
 		return &cfg, true
@@ -59,7 +60,7 @@ func (m *mockGoogleOauth2Helper) GetConfigForProvider(provider string) (*OauthCo
 	return nil, false
 }
 
-func (m *mockGoogleOauth2Helper) GetOauthAuthURL(opt *oauth2.Config, store *StateStore) string {
+func (m *mockGoogleOauth2Helper) GetOauthAuthURL(opt *oauth2.Config, store stateStore.StateStore) string {
 	_ = opt
 	store.Add(m.nextState, m.expectedVerifier)
 	return m.authURLBase + "?state=" + url.QueryEscape(m.nextState)
@@ -98,8 +99,8 @@ func newUserIntegrationSetup(t *testing.T) (*dep.Dep, *db.Queries, *mockGoogleOa
 	d := dep.NewDep(cfg, logger, sharedPool)
 	helper := newMockGoogleOauth2Helper()
 
-	store = newStateStore()
-	h := UserRouter(d, q, helper)
+	store := stateStore.NewMemoryStateStore()
+	h := UserRouter(d, q, helper, store)
 	return d, q, helper, h
 }
 
@@ -146,7 +147,7 @@ func TestUserRouter_Callback(t *testing.T) {
 		name      string
 		provider  string
 		query     string
-		setup     func(t *testing.T, helper *mockGoogleOauth2Helper, q *db.Queries)
+		setup     func(t *testing.T, d *dep.Dep, helper *mockGoogleOauth2Helper, q *db.Queries) http.Handler
 		verify    func(t *testing.T, d *dep.Dep, q *db.Queries, rr *httptest.ResponseRecorder)
 		wantError string
 	}{
@@ -154,10 +155,12 @@ func TestUserRouter_Callback(t *testing.T) {
 			name:     "success creates user and returns auth token",
 			provider: "google",
 			query:    "code=mock-code&state=mock-state",
-			setup: func(t *testing.T, helper *mockGoogleOauth2Helper, q *db.Queries) {
+			setup: func(t *testing.T, d *dep.Dep, helper *mockGoogleOauth2Helper, q *db.Queries) http.Handler {
 				t.Helper()
 				_ = q
+				store := stateStore.NewMemoryStateStore()
 				store.Add("mock-state", helper.expectedVerifier)
+				return UserRouter(d, q, helper, store)
 			},
 			verify: func(t *testing.T, d *dep.Dep, q *db.Queries, rr *httptest.ResponseRecorder) {
 				t.Helper()
@@ -170,7 +173,7 @@ func TestUserRouter_Callback(t *testing.T) {
 				if token == "" {
 					t.Fatalf("expected auth token in callback redirect")
 				}
-				userID, err := util.ValidateToken(token, d.Cfg.JWTSecret)
+				userID, err := auth.ValidateToken(token, d.Cfg.JWTSecret)
 				if err != nil {
 					t.Fatalf("validate token: %v", err)
 				}
@@ -190,31 +193,33 @@ func TestUserRouter_Callback(t *testing.T) {
 			name:      "missing code",
 			provider:  "google",
 			query:     "state=mock-state",
-			setup:     func(t *testing.T, helper *mockGoogleOauth2Helper, q *db.Queries) { _ = t; _ = helper; _ = q },
+			setup:     nil,
 			wantError: "code not found in query",
 		},
 		{
 			name:      "missing state",
 			provider:  "google",
 			query:     "code=mock-code",
-			setup:     func(t *testing.T, helper *mockGoogleOauth2Helper, q *db.Queries) { _ = t; _ = helper; _ = q },
+			setup:     nil,
 			wantError: "invalid state",
 		},
 		{
 			name:      "invalid state",
 			provider:  "google",
 			query:     "code=mock-code&state=unknown-state",
-			setup:     func(t *testing.T, helper *mockGoogleOauth2Helper, q *db.Queries) { _ = t; _ = helper; _ = q },
+			setup:     nil,
 			wantError: "invalid state",
 		},
 		{
 			name:     "unsupported provider",
 			provider: "github",
 			query:    "code=mock-code&state=mock-state",
-			setup: func(t *testing.T, helper *mockGoogleOauth2Helper, q *db.Queries) {
+			setup: func(t *testing.T, d *dep.Dep, helper *mockGoogleOauth2Helper, q *db.Queries) http.Handler {
 				t.Helper()
 				_ = q
+				store := stateStore.NewMemoryStateStore()
 				store.Add("mock-state", helper.expectedVerifier)
+				return UserRouter(d, q, helper, store)
 			},
 			wantError: "unsupported provider",
 		},
@@ -222,11 +227,13 @@ func TestUserRouter_Callback(t *testing.T) {
 			name:     "exchange token fails",
 			provider: "google",
 			query:    "code=mock-code&state=mock-state",
-			setup: func(t *testing.T, helper *mockGoogleOauth2Helper, q *db.Queries) {
+			setup: func(t *testing.T, d *dep.Dep, helper *mockGoogleOauth2Helper, q *db.Queries) http.Handler {
 				t.Helper()
 				_ = q
 				helper.exchangeErr = errors.New("exchange failed")
+				store := stateStore.NewMemoryStateStore()
 				store.Add("mock-state", helper.expectedVerifier)
+				return UserRouter(d, q, helper, store)
 			},
 			wantError: "failed to exchange code for token",
 		},
@@ -234,14 +241,16 @@ func TestUserRouter_Callback(t *testing.T) {
 			name:     "get user info fails",
 			provider: "google",
 			query:    "code=mock-code&state=mock-state",
-			setup: func(t *testing.T, helper *mockGoogleOauth2Helper, q *db.Queries) {
+			setup: func(t *testing.T, d *dep.Dep, helper *mockGoogleOauth2Helper, q *db.Queries) http.Handler {
 				t.Helper()
 				_ = q
 				helper.config.GetUserInfo = func(client *http.Client) (*db.UpsertUserParams, error) {
 					_ = client
 					return nil, errors.New("userinfo failed")
 				}
+				store := stateStore.NewMemoryStateStore()
 				store.Add("mock-state", helper.expectedVerifier)
+				return UserRouter(d, q, helper, store)
 			},
 			wantError: "failed to get user info",
 		},
@@ -249,14 +258,16 @@ func TestUserRouter_Callback(t *testing.T) {
 			name:     "get user info returns nil",
 			provider: "google",
 			query:    "code=mock-code&state=mock-state",
-			setup: func(t *testing.T, helper *mockGoogleOauth2Helper, q *db.Queries) {
+			setup: func(t *testing.T, d *dep.Dep, helper *mockGoogleOauth2Helper, q *db.Queries) http.Handler {
 				t.Helper()
 				_ = q
 				helper.config.GetUserInfo = func(client *http.Client) (*db.UpsertUserParams, error) {
 					_ = client
 					return nil, nil
 				}
+				store := stateStore.NewMemoryStateStore()
 				store.Add("mock-state", helper.expectedVerifier)
+				return UserRouter(d, q, helper, store)
 			},
 			wantError: "failed to get user info",
 		},
@@ -264,7 +275,7 @@ func TestUserRouter_Callback(t *testing.T) {
 			name:     "upsert user fails",
 			provider: "google",
 			query:    "code=mock-code&state=mock-state",
-			setup: func(t *testing.T, helper *mockGoogleOauth2Helper, q *db.Queries) {
+			setup: func(t *testing.T, d *dep.Dep, helper *mockGoogleOauth2Helper, q *db.Queries) http.Handler {
 				t.Helper()
 				_ = q
 				helpDisplayName := "Broken User"
@@ -276,7 +287,9 @@ func TestUserRouter_Callback(t *testing.T) {
 						DisplayName: &helpDisplayName,
 					}, nil
 				}
+				store := stateStore.NewMemoryStateStore()
 				store.Add("mock-state", helper.expectedVerifier)
+				return UserRouter(d, q, helper, store)
 			},
 			wantError: "failed to upsert user",
 		},
@@ -284,10 +297,12 @@ func TestUserRouter_Callback(t *testing.T) {
 			name:     "state replay rejected",
 			provider: "google",
 			query:    "code=mock-code&state=mock-state",
-			setup: func(t *testing.T, helper *mockGoogleOauth2Helper, q *db.Queries) {
+			setup: func(t *testing.T, d *dep.Dep, helper *mockGoogleOauth2Helper, q *db.Queries) http.Handler {
 				t.Helper()
 				_ = q
+				store := stateStore.NewMemoryStateStore()
 				store.Add("mock-state", helper.expectedVerifier)
+				return UserRouter(d, q, helper, store)
 			},
 			verify: func(t *testing.T, d *dep.Dep, q *db.Queries, rr *httptest.ResponseRecorder) {
 				t.Helper()
@@ -297,8 +312,10 @@ func TestUserRouter_Callback(t *testing.T) {
 				if firstLocation == "" {
 					t.Fatalf("expected first callback redirect location")
 				}
-				_, _, helper, h := newUserIntegrationSetup(t)
+				_, _, helper, _ := newUserIntegrationSetup(t)
+				store := stateStore.NewMemoryStateStore()
 				store.Add("mock-state", helper.expectedVerifier)
+				h := UserRouter(d, q, helper, store)
 				firstRR := httptest.NewRecorder()
 				h.ServeHTTP(firstRR, httptest.NewRequest(http.MethodGet, "/auth/google/callback?code=mock-code&state=mock-state", nil))
 				secondRR := httptest.NewRecorder()
@@ -319,7 +336,7 @@ func TestUserRouter_Callback(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			d, q, helper, h := newUserIntegrationSetup(t)
 			if tc.setup != nil {
-				tc.setup(t, helper, q)
+				h = tc.setup(t, d, helper, q)
 			}
 
 			rr := httptest.NewRecorder()
@@ -376,7 +393,7 @@ func TestUserRouter_GetMe(t *testing.T) {
 				if err != nil {
 					t.Fatalf("seed user: %v", err)
 				}
-				token, err := util.GenerateToken(seeded.ID, d.Cfg.JWTSecret, d.Cfg.JWTExpiry)
+				token, err := auth.GenerateToken(seeded.ID, d.Cfg.JWTSecret, d.Cfg.JWTExpiry)
 				if err != nil {
 					t.Fatalf("generate token: %v", err)
 				}
@@ -426,7 +443,7 @@ func TestUserRouter_GetMe(t *testing.T) {
 			tokenFactory: func(t *testing.T, d *dep.Dep, q *db.Queries) string {
 				t.Helper()
 				_ = q
-				token, err := util.GenerateToken(987654321, d.Cfg.JWTSecret, d.Cfg.JWTExpiry)
+				token, err := auth.GenerateToken(987654321, d.Cfg.JWTSecret, d.Cfg.JWTExpiry)
 				if err != nil {
 					t.Fatalf("generate token: %v", err)
 				}
@@ -449,7 +466,7 @@ func TestUserRouter_GetMe(t *testing.T) {
 					t.Fatalf("seed user: %v", err)
 				}
 
-				token, err := util.GenerateToken(seeded.ID, d.Cfg.JWTSecret, d.Cfg.JWTExpiry)
+				token, err := auth.GenerateToken(seeded.ID, d.Cfg.JWTSecret, d.Cfg.JWTExpiry)
 				if err != nil {
 					t.Fatalf("generate token: %v", err)
 				}
@@ -513,7 +530,7 @@ func TestUserRouter_DeleteMe(t *testing.T) {
 				if err != nil {
 					t.Fatalf("seed user: %v", err)
 				}
-				token, err := util.GenerateToken(seeded.ID, d.Cfg.JWTSecret, d.Cfg.JWTExpiry)
+				token, err := auth.GenerateToken(seeded.ID, d.Cfg.JWTSecret, d.Cfg.JWTExpiry)
 				if err != nil {
 					t.Fatalf("generate token: %v", err)
 				}
@@ -556,7 +573,7 @@ func TestUserRouter_DeleteMe(t *testing.T) {
 			tokenFactory: func(t *testing.T, d *dep.Dep, q *db.Queries) string {
 				t.Helper()
 				_ = q
-				token, err := util.GenerateToken(987654321, d.Cfg.JWTSecret, d.Cfg.JWTExpiry)
+				token, err := auth.GenerateToken(987654321, d.Cfg.JWTSecret, d.Cfg.JWTExpiry)
 				if err != nil {
 					t.Fatalf("generate token: %v", err)
 				}

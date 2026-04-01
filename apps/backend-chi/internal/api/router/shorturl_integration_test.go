@@ -17,9 +17,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/auth"
 	db "github.com/danielxfeng/short-url/apps/backend-chi/internal/api/db/sqlc"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/dto"
-	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/util"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/dep"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -98,7 +98,7 @@ func newShortURLIntegrationSetup(t *testing.T, userID int32) (*dep.Dep, *db.Quer
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	d := dep.NewDep(cfg, logger, sharedPool)
 
-	token, err := util.GenerateToken(userID, cfg.JWTSecret, cfg.JWTExpiry)
+	token, err := auth.GenerateToken(userID, cfg.JWTSecret, cfg.JWTExpiry)
 	if err != nil {
 		t.Fatalf("generate token: %v", err)
 	}
@@ -311,7 +311,7 @@ func TestShortURLRouter_ListRequiresAuthAndSupportsPagination(t *testing.T) {
 			h := ShortURLRouter(d, q)
 			u := seedUser(t, q, "list-user")
 			other := seedUser(t, q, "list-other")
-			token, err := util.GenerateToken(u.ID, d.Cfg.JWTSecret, d.Cfg.JWTExpiry)
+			token, err := auth.GenerateToken(u.ID, d.Cfg.JWTSecret, d.Cfg.JWTExpiry)
 			if err != nil {
 				t.Fatalf("generate token: %v", err)
 			}
@@ -389,7 +389,7 @@ func TestShortURLRouter_ListExcludesSoftDeletedLinks(t *testing.T) {
 	d, q, _ := newShortURLIntegrationSetup(t, 42)
 	h := ShortURLRouter(d, q)
 	u := seedUser(t, q, "list-soft-user")
-	token, err := util.GenerateToken(u.ID, d.Cfg.JWTSecret, d.Cfg.JWTExpiry)
+	token, err := auth.GenerateToken(u.ID, d.Cfg.JWTSecret, d.Cfg.JWTExpiry)
 	if err != nil {
 		t.Fatalf("generate token: %v", err)
 	}
@@ -478,7 +478,7 @@ func TestShortURLRouter_ListPaginationNormalizationBoundaries(t *testing.T) {
 			d, q, _ := newShortURLIntegrationSetup(t, 42)
 			h := ShortURLRouter(d, q)
 			u := seedUser(t, q, "list-normalize-user")
-			token, err := util.GenerateToken(u.ID, d.Cfg.JWTSecret, d.Cfg.JWTExpiry)
+			token, err := auth.GenerateToken(u.ID, d.Cfg.JWTSecret, d.Cfg.JWTExpiry)
 			if err != nil {
 				t.Fatalf("generate token: %v", err)
 			}
@@ -519,7 +519,7 @@ func TestShortURLRouter_CreateAndDelete(t *testing.T) {
 	d, q, _ := newShortURLIntegrationSetup(t, 42)
 	h := ShortURLRouter(d, q)
 	u := seedUser(t, q, "create-delete-user")
-	tokenForUser, err := util.GenerateToken(u.ID, d.Cfg.JWTSecret, d.Cfg.JWTExpiry)
+	tokenForUser, err := auth.GenerateToken(u.ID, d.Cfg.JWTSecret, d.Cfg.JWTExpiry)
 	if err != nil {
 		t.Fatalf("generate token: %v", err)
 	}
@@ -577,7 +577,7 @@ func TestShortURLRouter_DeleteForeignOwnedLinkReturnsNotFound(t *testing.T) {
 	attacker := seedUser(t, q, "attacker-user")
 	link := seedLink(t, q, owner.ID, "owned1234")
 
-	attackerToken, err := util.GenerateToken(attacker.ID, d.Cfg.JWTSecret, d.Cfg.JWTExpiry)
+	attackerToken, err := auth.GenerateToken(attacker.ID, d.Cfg.JWTSecret, d.Cfg.JWTExpiry)
 	if err != nil {
 		t.Fatalf("generate token: %v", err)
 	}

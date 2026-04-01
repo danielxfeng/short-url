@@ -35,6 +35,21 @@ type ShortURLRepository interface {
 	SetLinkClicked(ctx context.Context, code string) (int32, error)
 }
 
+func LinksToDTO(links []db.Link) []dto.LinkResponse {
+	result := make([]dto.LinkResponse, len(links))
+	for i, link := range links {
+		result[i] = dto.LinkResponse{
+			ID:          link.ID,
+			Code:        link.Code,
+			OriginalUrl: link.OriginalUrl,
+			Clicks:      link.Clicks,
+			CreatedAt:   link.CreatedAt,
+			IsDeleted:   link.DeletedAt != nil,
+		}
+	}
+	return result
+}
+
 func ShortURLRouter(dep *dep.Dep, repo ShortURLRepository) http.Handler {
 	r := chi.NewRouter()
 

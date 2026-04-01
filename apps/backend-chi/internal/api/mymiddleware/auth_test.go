@@ -6,19 +6,19 @@ import (
 	"testing"
 	"time"
 
-	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/util"
+	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/auth"
 )
 
 func TestAuth(t *testing.T) {
 	const secret = "test-secret"
 	const userID int32 = 42
 
-	validToken, err := util.GenerateToken(userID, secret, time.Hour)
+	validToken, err := auth.GenerateToken(userID, secret, time.Hour)
 	if err != nil {
 		t.Fatalf("generate valid token: %v", err)
 	}
 
-	invalidToken, err := util.GenerateToken(userID, "wrong-secret", time.Hour)
+	invalidToken, err := auth.GenerateToken(userID, "wrong-secret", time.Hour)
 	if err != nil {
 		t.Fatalf("generate invalid token: %v", err)
 	}

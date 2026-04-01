@@ -1,4 +1,4 @@
-package router
+package auth
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	db "github.com/danielxfeng/short-url/apps/backend-chi/internal/api/db/sqlc"
+	stateStore "github.com/danielxfeng/short-url/apps/backend-chi/internal/api/db/statestore"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/dep"
 	"golang.org/x/oauth2"
 )
@@ -21,15 +22,15 @@ const (
 	GithubUserInfoURL = "https://api.github.com/user"
 )
 
+type OauthHandler interface {
+	GetConfigForProvider(provider string) (*OauthConfig, bool)
+	GetOauthAuthURL(opt *oauth2.Config, store stateStore.StateStore) string
+	ExchangeCodeAndGetClient(ctx context.Context, opt *oauth2.Config, code string, verifier string) (*http.Client, error)
+}
+
 type OauthConfig struct {
 	Config      oauth2.Config
 	GetUserInfo func(client *http.Client) (*db.UpsertUserParams, error)
-}
-
-type OauthHelper interface {
-	GetConfigForProvider(provider string) (*OauthConfig, bool)
-	GetOauthAuthURL(opt *oauth2.Config, store *StateStore) string
-	ExchangeCodeAndGetClient(ctx context.Context, opt *oauth2.Config, code string, verifier string) (*http.Client, error)
 }
 
 type GoogleOauth2Helper struct {
@@ -80,7 +81,7 @@ func (h *GoogleOauth2Helper) GetConfigForProvider(provider string) (*OauthConfig
 	return &config, ok
 }
 
-func (h *GoogleOauth2Helper) GetOauthAuthURL(opt *oauth2.Config, store *StateStore) string {
+func (h *GoogleOauth2Helper) GetOauthAuthURL(opt *oauth2.Config, store stateStore.StateStore) string {
 	varifier := oauth2.GenerateVerifier()
 	state := oauth2.GenerateVerifier()
 	store.Add(state, varifier)
