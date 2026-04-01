@@ -20,5 +20,11 @@ func main() {
 		log.Fatal("failed to migrate db", "err: ", err)
 	}
 
+	if cfg.TestDbURL != "" && cfg.TestDbURL != cfg.DbURL {
+		if err := sqlc.MigrateDB(cfg.TestDbURL); err != nil {
+			log.Fatal("failed to migrate test db", "err: ", err)
+		}
+	}
+
 	log.Println("migration successful")
 }

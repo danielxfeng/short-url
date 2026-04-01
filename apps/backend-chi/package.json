@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "go test ./... -cover",
+    "test": "go test -p 1 ./... -cover",
     "format": "gofmt -w .",
     "format:check": "gofmt -l .",
     "lint": "golangci-lint run",

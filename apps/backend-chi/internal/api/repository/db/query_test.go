@@ -7,8 +7,6 @@ import (
 	"errors"
 	"log"
 	"os"
-	"path/filepath"
-	"runtime"
 	"testing"
 
 	db "github.com/danielxfeng/short-url/apps/backend-chi/internal/api/repository/db"
@@ -28,25 +26,11 @@ type testStore struct {
 	q *db.Queries
 }
 
-func loadTestEnv() {
-	_, currentFile, _, ok := runtime.Caller(0)
-	if !ok {
-		return
-	}
-
-	envPath := filepath.Clean(filepath.Join(filepath.Dir(currentFile), "../../../../.env"))
-	_ = godotenv.Load(envPath)
-}
-
 func TestMain(m *testing.M) {
-	loadTestEnv()
+	_ = godotenv.Load("../../../../.env")
 
 	testDbURL, err := dep.GetEnvStrOrError("TEST_DB_URL")
 	if err != nil {
-		log.Fatalf("setup test db: %v", err)
-	}
-
-	if err := db.MigrateDB(testDbURL); err != nil {
 		log.Fatalf("setup test db: %v", err)
 	}
 
