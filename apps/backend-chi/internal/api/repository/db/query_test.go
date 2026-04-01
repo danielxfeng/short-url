@@ -5,7 +5,6 @@ package db_test
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -618,7 +617,7 @@ func TestProviderEnumScanAndValue(t *testing.T) {
 }
 
 func TestProviderEnumStringFormatting(t *testing.T) {
-	if got := fmt.Sprintf("%s", db.ProviderEnumGOOGLE); got != "GOOGLE" {
+	if got := string(db.ProviderEnumGOOGLE); got != "GOOGLE" {
 		t.Fatalf("unexpected string formatting: %q", got)
 	}
 }
