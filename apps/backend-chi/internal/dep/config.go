@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type AppModeType string
@@ -19,12 +20,20 @@ const (
 var allowedAppModes = []AppModeType{EnvProd, EnvDev, EnvTest}
 
 type Config struct {
-	AppMode   AppModeType
-	Port      int
-	Cors      string
-	SentryDSN string
-	DbURL     string
-	TestDbURL string
+	AppMode             AppModeType
+	Port                int
+	Cors                string
+	SentryDSN           string
+	DbURL               string
+	TestDbURL           string
+	JWTSecret           string
+	JWTExpiry           time.Duration
+	NotFoundPage        string
+	GoogleClientID      string
+	GoogleClientSecret  string
+	GithubClientID      string
+	GithubClientSecret  string
+	FrontendRedirectURL string
 }
 
 func GetEnvStrOrDefault(key string, defaultValue string) string {
@@ -71,13 +80,26 @@ func LoadAppMode() AppModeType {
 }
 
 func LoadConfigFromEnv() (*Config, error) {
+	jwtSecret, err := GetEnvStrOrError("JWT_SECRET")
+	if err != nil {
+		return nil, err
+	}
+
 	cfg := &Config{
-		AppMode:   LoadAppMode(),
-		Port:      GetEnvIntOrDefault("PORT", 8080),
-		Cors:      GetEnvStrOrDefault("CORS", "http://localhost:5173"),
-		SentryDSN: GetEnvStrOrDefault("SENTRY_DSN", ""),
-		DbURL:     GetEnvStrOrDefault("DB_URL", "postgresql://user:password@localhost:5432/dbname?sslmode=disable"),
-		TestDbURL: GetEnvStrOrDefault("TEST_DB_URL", "postgresql://user:password@localhost:5432/test_dbname?sslmode=disable"),
+		AppMode:             LoadAppMode(),
+		Port:                GetEnvIntOrDefault("PORT", 8080),
+		Cors:                GetEnvStrOrDefault("CORS", "http://localhost:5173"),
+		SentryDSN:           GetEnvStrOrDefault("SENTRY_DSN", ""),
+		DbURL:               GetEnvStrOrDefault("DB_URL", "postgresql://user:password@localhost:5432/dbname?sslmode=disable"),
+		TestDbURL:           GetEnvStrOrDefault("TEST_DB_URL", "postgresql://user:password@localhost:5432/test_dbname?sslmode=disable"),
+		JWTSecret:           jwtSecret,
+		JWTExpiry:           time.Duration(GetEnvIntOrDefault("JWT_EXPIRY", 24*7)) * time.Hour, // default to 7 days
+		NotFoundPage:        GetEnvStrOrDefault("NOT_FOUND_PAGE", "http://localhost:5173/not-found"),
+		GoogleClientID:      GetEnvStrOrDefault("GOOGLE_CLIENT_ID", ""),
+		GoogleClientSecret:  GetEnvStrOrDefault("GOOGLE_CLIENT_SECRET", ""),
+		GithubClientID:      GetEnvStrOrDefault("GITHUB_CLIENT_ID", ""),
+		GithubClientSecret:  GetEnvStrOrDefault("GITHUB_CLIENT_SECRET", ""),
+		FrontendRedirectURL: GetEnvStrOrDefault("FRONTEND_REDIRECT_URL", "http://localhost:5173/auth/callback"),
 	}
 
 	return cfg, nil

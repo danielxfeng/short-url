@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	db "github.com/danielxfeng/short-url/apps/backend-chi/internal/api/db/sqlc"
+	sqlc "github.com/danielxfeng/short-url/apps/backend-chi/internal/api/repository/db"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/dep"
 	"github.com/joho/godotenv"
 )
@@ -16,8 +16,14 @@ func main() {
 		log.Fatal("failed to init cfg", "err: ", err)
 	}
 
-	if err := db.MigrateDB(cfg.DbURL); err != nil {
+	if err := sqlc.MigrateDB(cfg.DbURL); err != nil {
 		log.Fatal("failed to migrate db", "err: ", err)
+	}
+
+	if cfg.TestDbURL != "" && cfg.TestDbURL != cfg.DbURL {
+		if err := sqlc.MigrateDB(cfg.TestDbURL); err != nil {
+			log.Fatal("failed to migrate test db", "err: ", err)
+		}
 	}
 
 	log.Println("migration successful")

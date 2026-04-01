@@ -3,10 +3,10 @@ package dto
 import (
 	"reflect"
 	"strings"
+	"time"
 
+	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/repository/models"
 	"github.com/go-playground/validator/v10"
-
-	sqlcdb "github.com/danielxfeng/short-url/apps/backend-chi/internal/api/db/sqlc"
 )
 
 var Validate *validator.Validate
@@ -51,7 +51,7 @@ type APIErrorRes struct {
 }
 
 type UpsertUserReq struct {
-	Provider    sqlcdb.ProviderEnum `json:"provider" validate:"required,trim,oneof=GOOGLE GITHUB"`
+	Provider    models.ProviderEnum `json:"provider" validate:"required,trim,oneof=GOOGLE GITHUB"`
 	ProviderID  string              `json:"provider_id" validate:"required,trim,min=1,max=255"`
 	DisplayName *string             `json:"display_name" validate:"omitempty,trim,min=1,max=255"`
 	ProfilePic  *string             `json:"profile_pic" validate:"omitempty,trim,min=1,max=255"`
@@ -59,7 +59,7 @@ type UpsertUserReq struct {
 
 type UserResponse struct {
 	ID          int32               `json:"id"`
-	Provider    sqlcdb.ProviderEnum `json:"provider"`
+	Provider    models.ProviderEnum `json:"provider"`
 	ProviderID  string              `json:"provider_id"`
 	DisplayName *string             `json:"display_name,omitempty"`
 	ProfilePic  *string             `json:"profile_pic,omitempty"`
@@ -75,17 +75,12 @@ type CreateLinkReq struct {
 }
 
 type LinkResponse struct {
-	ID          int32  `json:"id"`
-	Code        string `json:"code"`
-	OriginalUrl string `json:"original_url"`
-	Clicks      int32  `json:"clicks"`
-	CreatedAt   string `json:"created_at"`
-	IsDeleted   bool   `json:"is_deleted"`
-}
-
-type GetLinksReq struct {
-	Limit  *int32 `json:"limit,omitempty"  validate:"omitempty,min=1,max=20"`
-	Cursor *int32 `json:"cursor,omitempty" validate:"omitempty"`
+	ID          int32     `json:"id"`
+	Code        string    `json:"code"`
+	OriginalUrl string    `json:"original_url"`
+	Clicks      int32     `json:"clicks"`
+	CreatedAt   time.Time `json:"created_at"`
+	IsDeleted   bool      `json:"is_deleted"`
 }
 
 type LinksResponse struct {

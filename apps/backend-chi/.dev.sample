@@ -1,2 +1,0 @@
-DB_URL=postgresql://user:password@localhost/dbname
-TEST_DB_URL=postgresql://user:password@localhost/dbname
