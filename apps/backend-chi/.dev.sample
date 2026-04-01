@@ -1,4 +1,0 @@
-DB_URL=postgresql://user:password@localhost/dbname
-TEST_DB_URL=postgresql://user:password@localhost/dbname
-JWT_SECRET=sample_secret
-JWT_EXPIRY=168 # 7 days
