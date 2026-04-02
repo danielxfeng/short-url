@@ -16,6 +16,7 @@ interface FetchApiParams<Tbody, Tresponse> {
   schema?: z.ZodSchema<Tresponse>;
   searchParams?: Record<string, QueryParamValue>;
   body?: Tbody;
+  injectedToken?: string;
 }
 
 export const fetchApi = async <Tbody, Tresponse>(
@@ -41,7 +42,7 @@ export const fetchApi = async <Tbody, Tresponse>(
   };
 
   if (isAuthRequired) {
-    const token = useUser.getState().token;
+    const token = params.injectedToken ? params.injectedToken : useUser.getState().token;
     if (!token) {
       window.location.href = '/';
       return null;

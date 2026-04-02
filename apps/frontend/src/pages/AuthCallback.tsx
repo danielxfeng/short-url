@@ -1,17 +1,58 @@
-import { useNavigate, useParams } from 'react-router';
+import { useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
+import { getUserInfo } from '@/services';
+import { useUser } from '@/hooks/useUser';
 
 const AuthCallback = () => {
-  const { auth, error } = useParams();
+  const [searchParams] = useSearchParams();
+  const auth = searchParams.get('auth');
+  const error = searchParams.get('error');
+  const { login, logout } = useUser();
   const navigate = useNavigate();
 
-  if (error) toast.error(`Authentication failed: ${error}`);
+  useEffect(() => {
+    let isCancelled = false;
 
-  if (auth) {
-    localStorage.setItem('auth', auth);
-  }
+    const handleCallback = async () => {
+      if (error) {
+        toast.error(`Authentication failed: ${error}`);
+        logout();
+        navigate('/', { replace: true });
+        return;
+      }
 
-  navigate('/');
+      if (!auth) {
+        navigate('/', { replace: true });
+        return;
+      }
+
+      try {
+        const user = await getUserInfo(auth);
+        if (!user) throw new Error('Failed to retrieve user information after authentication.');
+
+        if (isCancelled) return;
+
+        login(user, auth);
+        toast.success('Authentication successful!');
+      } catch (err) {
+        if (isCancelled) return;
+
+        logout();
+        console.error('Error fetching user info:', err);
+        toast.error('An error occurred while fetching user information.');
+      }
+
+      if (!isCancelled) navigate('/', { replace: true });
+    };
+
+    void handleCallback();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [auth, error, login, logout, navigate]);
+
   return null;
 };
 
