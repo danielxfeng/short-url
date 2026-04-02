@@ -12,7 +12,7 @@ const Layout = () => {
       <header className='h-16 flex shrink-0 items-center justify-center border-b'>
         <Header />
       </header>
-      <main className='flex-1'>
+      <main className='flex-1 flex flex-col'>
         <Outlet />
       </main>
       <footer className='h-12 flex shrink-0 items-center justify-center border-t'>
