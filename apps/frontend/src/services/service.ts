@@ -1,4 +1,5 @@
 import config from '@/config/config';
+import { useUser } from '@/hooks/useUser';
 import * as z from 'zod';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -40,9 +41,9 @@ export const fetchApi = async <Tbody, Tresponse>(
   };
 
   if (isAuthRequired) {
-    const token = localStorage.getItem('token');
+    const token = useUser.getState().token;
     if (!token) {
-      window.location.href = '/login';
+      window.location.href = '/';
       return null;
     }
 
@@ -60,8 +61,8 @@ export const fetchApi = async <Tbody, Tresponse>(
 
   if (!response.ok) {
     if (response.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+      useUser.getState().logout();
+      window.location.href = '/';
       return null;
     }
 
