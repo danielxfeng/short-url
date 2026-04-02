@@ -1,7 +1,7 @@
 import * as z from 'zod';
 
-const oauthProviderValues = ['GOOGLE', 'GITHUB'] as const;
-export const OauthProviderEnum = z.enum(oauthProviderValues);
+export const OauthProviderValues = ['GOOGLE', 'GITHUB'] as const;
+export const OauthProviderEnum = z.enum(OauthProviderValues);
 export type OauthProvider = z.infer<typeof OauthProviderEnum>;
 
 export const UserResSchema = z.object({

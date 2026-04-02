@@ -1,9 +1,13 @@
+import AuthGuard from '@/components/shared/AuthGuard';
+
 const HomePage = () => {
   return (
-    <div className='w-full max-w-2xl mx-auto p-4'>
-      <h1 className='text-2xl font-bold mb-4'>Welcome to the Short URL Service</h1>
-      <p className='mb-2'>Create and manage your short URLs with ease.</p>
-      <p>Use the navigation above to get started.</p>
+    <div className='w-full max-w-2xl p-4 flex-1 flex flex-col mt-4 mb-8 gap-4'>
+      <h1 className='text-2xl font-bold'>Welcome to the Short URL Service</h1>
+      <p className='text-muted-foreground'>Create and manage your short URLs with ease.</p>
+      <AuthGuard>
+        <p className='text-lg'>You are logged in!</p>
+      </AuthGuard>
     </div>
   );
 };
