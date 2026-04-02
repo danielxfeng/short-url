@@ -1,3 +1,2 @@
-import healthCheck from './healthCheck';
-
-export default { healthCheck };
+export * from './userService';
+export * from './linkService';
