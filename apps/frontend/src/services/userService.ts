@@ -1,11 +1,12 @@
 import { UserResSchema, type UserRes } from '@/schemas/schemas';
 import { fetchApi } from './service';
 
-const getUserInfo = async () => {
+const getUserInfo = async (token: string) => {
   return fetchApi<undefined, UserRes>({
     path: '/user/me',
     method: 'GET',
     isAuthRequired: true,
+    injectedToken: token,
     schema: UserResSchema,
   });
 };

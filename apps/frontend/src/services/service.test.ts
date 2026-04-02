@@ -119,6 +119,37 @@ describe('fetchApi', () => {
     expect(result).toEqual({ id: 1 });
   });
 
+  it('uses an injected token for authenticated requests', async () => {
+    const schema = z.object({
+      id: z.number(),
+    });
+
+    vi.mocked(globalThis.fetch).mockResolvedValue(
+      new Response(JSON.stringify({ id: 1 }), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }),
+    );
+
+    const result = await fetchApi<undefined, { id: number }>({
+      path: '/user/me',
+      isAuthRequired: true,
+      injectedToken: 'callback-token',
+      schema,
+    });
+
+    expect(globalThis.fetch).toHaveBeenCalledWith('http://localhost:8080/user/me', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer callback-token',
+      },
+    });
+    expect(result).toEqual({ id: 1 });
+  });
+
   it('returns null when no schema is provided', async () => {
     vi.mocked(globalThis.fetch).mockResolvedValue(
       new Response(null, {
