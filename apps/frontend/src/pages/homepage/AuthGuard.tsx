@@ -1,7 +1,7 @@
 import config from '@/config/config';
 import { useUser } from '@/hooks/useUser';
 import { OauthProviderValues, type OauthProvider } from '@/schemas/schemas';
-import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/ui/tooltip';
 import { FaGithub, FaGoogle } from 'react-icons/fa';
 
 interface LinkCompProps {

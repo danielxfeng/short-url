@@ -1,4 +1,4 @@
-import AuthGuard from '@/components/shared/AuthGuard';
+import AuthGuard from '@/pages/homepage/AuthGuard';
 
 const HomePage = () => {
   return (
