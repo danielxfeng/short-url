@@ -8,7 +8,8 @@ const AuthCallback = () => {
   const [searchParams] = useSearchParams();
   const auth = searchParams.get('auth');
   const error = searchParams.get('error');
-  const { login, logout } = useUser();
+  const login = useUser((s) => s.login);
+  const logout = useUser((s) => s.logout);
   const navigate = useNavigate();
 
   useEffect(() => {
