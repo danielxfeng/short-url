@@ -5,6 +5,7 @@ import * as Sentry from '@sentry/react';
 import App from './App.tsx';
 import { BrowserRouter } from 'react-router';
 import { Toaster } from './components/ui/sonner.tsx';
+import { TooltipProvider } from './components/ui/tooltip.tsx';
 
 const container = document.getElementById('root');
 
@@ -26,7 +27,9 @@ const root = createRoot(container, {
 root.render(
   <Sentry.ErrorBoundary fallback={<div>Something went wrong.</div>}>
     <BrowserRouter>
-      <App />
+      <TooltipProvider>
+        <App />
+      </TooltipProvider>
       <Toaster richColors={true} />
     </BrowserRouter>
   </Sentry.ErrorBoundary>,

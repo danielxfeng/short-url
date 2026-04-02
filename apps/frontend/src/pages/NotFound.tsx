@@ -6,7 +6,7 @@ interface NotFoundCompProps {
 
 export const NotFoundComp = ({ pathName }: NotFoundCompProps) => {
   return (
-    <div className='flex flex-col items-center justify-center flex-1'>
+    <div className='w-full min-h-dvh flex flex-col items-center justify-center'>
       <h1 className='text-2xl font-bold mb-4'>404 - Not Found</h1>
       <p className='text-muted-foreground'>No page found for: {pathName}</p>
     </div>
