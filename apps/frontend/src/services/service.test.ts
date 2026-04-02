@@ -2,6 +2,19 @@ import { z } from 'zod';
 
 import { fetchApi } from './service';
 
+const userState = {
+  user: null,
+  token: null as string | null,
+  login: vi.fn(),
+  logout: vi.fn(),
+};
+
+vi.mock('@/hooks/useUser', () => ({
+  useUser: {
+    getState: () => userState,
+  },
+}));
+
 describe('fetchApi', () => {
   const originalFetch = globalThis.fetch;
   const storage = new Map<string, string>();
@@ -9,6 +22,10 @@ describe('fetchApi', () => {
   beforeEach(() => {
     storage.clear();
     globalThis.fetch = vi.fn();
+    userState.user = null;
+    userState.token = null;
+    userState.login = vi.fn();
+    userState.logout = vi.fn();
     vi.stubGlobal('localStorage', {
       getItem: vi.fn((key: string) => storage.get(key) ?? null),
       setItem: vi.fn((key: string, value: string) => {
@@ -71,7 +88,7 @@ describe('fetchApi', () => {
       id: z.number(),
     });
 
-    localStorage.setItem('token', 'token-123');
+    userState.token = 'token-123';
     vi.mocked(globalThis.fetch).mockResolvedValue(
       new Response(JSON.stringify({ id: 1 }), {
         status: 200,
