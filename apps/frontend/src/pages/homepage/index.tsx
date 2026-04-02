@@ -1,4 +1,6 @@
 import AuthGuard from '@/pages/homepage/AuthGuard';
+import CreateLinkForm from './CreateLinkForm';
+import LinksTable from './LinksTable';
 
 const HomePage = () => {
   return (
@@ -6,7 +8,8 @@ const HomePage = () => {
       <h1 className='text-2xl font-bold'>Welcome to the Short URL Service</h1>
       <p className='text-muted-foreground'>Create and manage your short URLs with ease.</p>
       <AuthGuard>
-        <p className='text-lg'>You are logged in!</p>
+        <CreateLinkForm />
+        <LinksTable />
       </AuthGuard>
     </div>
   );
