@@ -6,6 +6,7 @@ import App from './App.tsx';
 import { BrowserRouter } from 'react-router';
 import { Toaster } from './components/ui/sonner.tsx';
 import { TooltipProvider } from './components/ui/tooltip.tsx';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const container = document.getElementById('root');
 
@@ -24,11 +25,15 @@ const root = createRoot(container, {
   onRecoverableError: Sentry.reactErrorHandler(),
 });
 
+const queryClient = new QueryClient();
+
 root.render(
   <Sentry.ErrorBoundary fallback={<div>Something went wrong.</div>}>
     <BrowserRouter>
       <TooltipProvider>
-        <App />
+        <QueryClientProvider client={queryClient}>
+          <App />
+        </QueryClientProvider>
       </TooltipProvider>
       <Toaster richColors={true} />
     </BrowserRouter>
