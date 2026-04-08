@@ -13,7 +13,7 @@ const useMutateLink = () => {
   const mutationFn = async ({ url, method }: LinkMutationInput) => {
     const trimmed = url.trim();
 
-    if (!trimmed) return;
+    if (!trimmed) throw new Error('URL is required');
 
     return method === 'create' ? createLink(trimmed) : deleteLink(trimmed);
   };
