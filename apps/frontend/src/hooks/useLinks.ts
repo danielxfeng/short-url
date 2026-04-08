@@ -1,17 +1,18 @@
-import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
+import { infiniteQueryOptions, useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
 import { getLinks } from '../services';
 import type { LinksRes } from '@/schemas/schemas';
 
-const useLinks = () => {
-  const queryOptions = {
+export const linksQueryOptions = () =>
+  infiniteQueryOptions({
     queryKey: ['links'],
     queryFn: ({ pageParam }: { pageParam: number | undefined }) => getLinks(pageParam),
     initialPageParam: undefined,
     getNextPageParam: (lastPage: LinksRes) => (lastPage.has_more ? lastPage.cursor : undefined),
     select: (data: InfiniteData<LinksRes>) => data.pages.flatMap((page) => page.links),
-  };
+  });
 
-  const query = useInfiniteQuery(queryOptions);
+const useLinks = () => {
+  const query = useInfiniteQuery(linksQueryOptions());
 
   return {
     data: query.data,
