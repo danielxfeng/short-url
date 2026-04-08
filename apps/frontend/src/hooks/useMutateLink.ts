@@ -33,9 +33,14 @@ const useMutateLink = () => {
     mutation.mutate({ url, method: 'delete' });
   };
 
+  const clearLink = () => {
+    queryClient.removeQueries({ queryKey: linksQueryOptions().queryKey });
+  };
+
   return {
     addLink,
     removeLink,
+    clearLink,
     isPending: mutation.isPending,
     isSuccess: mutation.isSuccess,
     isError: mutation.isError,
