@@ -150,7 +150,7 @@ describe('fetchApi', () => {
     expect(result).toEqual({ id: 1 });
   });
 
-  it('returns null when no schema is provided', async () => {
+  it('returns undefined when no schema is provided', async () => {
     vi.mocked(globalThis.fetch).mockResolvedValue(
       new Response(null, {
         status: 204,
@@ -162,7 +162,7 @@ describe('fetchApi', () => {
       method: 'DELETE',
     });
 
-    expect(result).toBeNull();
+    expect(result).toBeUndefined();
   });
 
   it('throws on non-OK responses', async () => {

@@ -7,7 +7,7 @@ import {
 } from '@/schemas/schemas';
 import { fetchApi } from './service';
 
-const createLink = async (url: string): Promise<LinkRes | null> => {
+const createLink = async (url: string): Promise<LinkRes> => {
   const body: CreateLinkReq = { original_url: url };
 
   return fetchApi<CreateLinkReq, LinkRes>({
@@ -19,7 +19,7 @@ const createLink = async (url: string): Promise<LinkRes | null> => {
   });
 };
 
-const getLinks = async (cursor?: number): Promise<LinksRes | null> => {
+const getLinks = async (cursor?: number): Promise<LinksRes> => {
   return fetchApi<undefined, LinksRes>({
     path: '/links',
     isAuthRequired: true,

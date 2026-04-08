@@ -21,7 +21,7 @@ interface FetchApiParams<Tbody, Tresponse> {
 
 export const fetchApi = async <Tbody, Tresponse>(
   params: FetchApiParams<Tbody, Tresponse>,
-): Promise<Tresponse | null> => {
+): Promise<Tresponse> => {
   const { path, isAuthRequired = false, method = 'GET', schema, searchParams, body } = params;
 
   const url = new URL(path, config.apiBaseUrl);
@@ -45,7 +45,7 @@ export const fetchApi = async <Tbody, Tresponse>(
     const token = params.injectedToken ? params.injectedToken : useUser.getState().token;
     if (!token) {
       window.location.href = '/';
-      return null;
+      throw new Error('Authentication required but no token found');
     }
 
     options.headers = {
@@ -64,13 +64,13 @@ export const fetchApi = async <Tbody, Tresponse>(
     if (response.status === 401) {
       useUser.getState().logout();
       window.location.href = '/';
-      return null;
+      throw new Error('Unauthorized');
     }
 
     throw new Error(`Request failed for ${method} ${url.toString()}: ${response.statusText}`);
   }
 
-  if (!schema) return null;
+  if (!schema) return undefined as unknown as Tresponse;
 
   return schema.parse(await response.json());
 };
