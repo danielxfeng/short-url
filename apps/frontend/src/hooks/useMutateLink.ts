@@ -3,15 +3,15 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { linksQueryOptions } from './useLinks';
 
 interface LinkMutationInput {
-  url: string;
+  urlOrCode: string;
   method: 'create' | 'delete';
 }
 
 const useMutateLink = () => {
   const queryClient = useQueryClient();
 
-  const mutationFn = async ({ url, method }: LinkMutationInput) => {
-    const trimmed = url.trim();
+  const mutationFn = async ({ urlOrCode, method }: LinkMutationInput) => {
+    const trimmed = urlOrCode.trim();
 
     if (!trimmed) throw new Error('URL is required');
 
@@ -26,11 +26,11 @@ const useMutateLink = () => {
   });
 
   const addLink = (url: string) => {
-    mutation.mutate({ url, method: 'create' });
+    mutation.mutate({ urlOrCode: url, method: 'create' });
   };
 
-  const removeLink = (url: string) => {
-    mutation.mutate({ url, method: 'delete' });
+  const removeLink = (code: string) => {
+    mutation.mutate({ urlOrCode: code, method: 'delete' });
   };
 
   const clearLink = () => {
