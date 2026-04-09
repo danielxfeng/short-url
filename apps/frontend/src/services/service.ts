@@ -45,7 +45,7 @@ export const fetchApi = async <Tbody, Tresponse>(
     const token = params.injectedToken ? params.injectedToken : useUser.getState().token;
     if (!token) {
       window.location.href = '/';
-      throw new Error('Authentication required but no token found');
+      throw new Error('Unauthorized');
     }
 
     options.headers = {
