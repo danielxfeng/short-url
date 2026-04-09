@@ -2,7 +2,6 @@ import { createLink, deleteLink } from '@/services';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { linksQueryOptions } from './useLinks';
 import logger from '@/lib/logger';
-import { toast } from 'sonner';
 
 interface LinkMutationInput {
   urlOrCode: string;
@@ -23,12 +22,10 @@ const useMutateLink = () => {
   const mutation = useMutation({
     mutationFn,
     onSuccess: async () => {
-      toast.success('Operation successful!');
       await queryClient.invalidateQueries({ queryKey: linksQueryOptions().queryKey });
     },
     onError: (error) => {
       logger.error('Link mutation error', error);
-      toast.error('An error occurred while processing your request. Please try again.');
     },
   });
 
@@ -49,7 +46,6 @@ const useMutateLink = () => {
     removeLink,
     clearLinks,
     isPending: mutation.isPending,
-    isSuccess: mutation.isSuccess,
   };
 };
 
