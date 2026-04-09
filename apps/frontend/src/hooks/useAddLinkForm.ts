@@ -1,8 +1,6 @@
 import { CreateLinkReqSchema } from '@/schemas/schemas';
 import { useForm } from '@tanstack/react-form';
 import useMutateLink from './useMutateLink';
-import logger from '@/lib/logger';
-import { toast } from 'sonner';
 
 const useAddLinkForm = () => {
   const mutation = useMutateLink();
@@ -12,26 +10,15 @@ const useAddLinkForm = () => {
       original_url: '',
     },
     validators: {
-      onSubmit: CreateLinkReqSchema,
-      onSubmitAsync: async ({ value }) => {
-        try {
-          await mutation.addLink(value.original_url);
-          return undefined;
-        } catch (error) {
-          logger.error('Failed to add link', error);
-          if (error instanceof Error) {
-            return {
-              fields: {
-                original_url: error.message,
-              },
-            };
-          }
-        }
-      },
+      onChange: CreateLinkReqSchema,
     },
-    onSubmit: ({ formApi }) => {
-      formApi.reset();
-      toast.success('Link added successfully!');
+    onSubmit: async ({ value, formApi }) => {
+      try {
+        await mutation.addLink(value.original_url);
+        formApi.reset();
+      } catch {
+        // Error handling is done in the mutation's onError callback
+      }
     },
   });
 

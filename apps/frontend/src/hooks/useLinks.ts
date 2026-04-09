@@ -9,6 +9,9 @@ export const linksQueryOptions = () =>
     initialPageParam: undefined,
     getNextPageParam: (lastPage: LinksRes) => (lastPage.has_more ? lastPage.cursor : undefined),
     select: (data: InfiniteData<LinksRes>) => data.pages.flatMap((page) => page.links),
+    meta: {
+      errorMessage: 'Failed to load links. Please try again.',
+    },
   });
 
 const useLinks = () => {
@@ -20,8 +23,6 @@ const useLinks = () => {
     fetchNext: query.fetchNextPage,
     isFetching: query.isFetching,
     isFetchingNext: query.isFetchingNextPage,
-    isError: query.isError,
-    error: query.error,
   };
 };
 
