@@ -25,12 +25,12 @@ const useMutateLink = () => {
     },
   });
 
-  const addLink = (url: string) => {
-    mutation.mutate({ urlOrCode: url, method: 'create' });
+  const addLink = async (url: string) => {
+    await mutation.mutateAsync({ urlOrCode: url, method: 'create' });
   };
 
-  const removeLink = (code: string) => {
-    mutation.mutate({ urlOrCode: code, method: 'delete' });
+  const removeLink = async (code: string) => {
+    await mutation.mutateAsync({ urlOrCode: code, method: 'delete' });
   };
 
   const clearLinks = () => {
