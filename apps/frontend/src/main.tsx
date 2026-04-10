@@ -51,7 +51,7 @@ root.render(
           <App />
         </QueryClientProvider>
       </TooltipProvider>
-      <Toaster richColors={true} />
+      <Toaster richColors={true} position='top-center' />
     </BrowserRouter>
   </Sentry.ErrorBoundary>,
 );
