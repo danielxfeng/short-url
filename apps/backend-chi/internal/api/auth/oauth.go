@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/repository/models"
@@ -48,7 +49,7 @@ func NewGoogleOauth2Helper(cfg *dep.Config) *GoogleOauth2Helper {
 					AuthURL:  GoogleAuthURL,
 					TokenURL: GoogleTokenURL,
 				},
-				RedirectURL: cfg.FrontendRedirectURL,
+				RedirectURL: oauthCallbackURL(cfg.BackendPublicURL, models.ProviderEnumGOOGLE),
 				Scopes:      []string{"profile", "openid"},
 			},
 			GetUserInfo: getAndParseGoogleUserInfo,
@@ -64,7 +65,7 @@ func NewGoogleOauth2Helper(cfg *dep.Config) *GoogleOauth2Helper {
 					AuthURL:  GithubAuthURL,
 					TokenURL: GithubTokenURL,
 				},
-				RedirectURL: cfg.FrontendRedirectURL,
+				RedirectURL: oauthCallbackURL(cfg.BackendPublicURL, models.ProviderEnumGITHUB),
 				Scopes:      []string{"read:user"},
 			},
 			GetUserInfo: getAndParseGithubUserInfo,
@@ -199,4 +200,9 @@ func getAndParseGithubUserInfo(client *http.Client) (*models.UpsertUserParams, e
 		DisplayName: displayName,
 		ProfilePic:  profilePic,
 	}, nil
+}
+
+func oauthCallbackURL(baseURL string, provider models.ProviderEnum) string {
+	u, _ := url.JoinPath(baseURL, "/api/v1/user/auth/", strings.ToLower(string(provider)), "/callback")
+	return u
 }
