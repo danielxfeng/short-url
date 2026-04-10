@@ -1,9 +1,9 @@
 import Header from './components/shared/Header';
 import Footer from './components/shared/Footer';
-import HomePage from './pages/homepage';
+import HomePage from './components/homepage';
 import { Outlet, Route, Routes } from 'react-router';
-import AuthCallback from './pages/AuthCallback';
-import NotFound from './pages/NotFound';
+import AuthCallback from './components/AuthCallback';
+import NotFound from './components/NotFound';
 
 const Layout = () => {
   return (
