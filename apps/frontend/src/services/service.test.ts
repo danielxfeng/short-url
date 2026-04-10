@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import config from '@/config/config';
 import { fetchApi } from './service';
 
 const userState = {
@@ -22,6 +23,7 @@ describe('fetchApi', () => {
   beforeEach(() => {
     storage.clear();
     globalThis.fetch = vi.fn();
+    config.apiBaseUrl = 'http://localhost:8080/api/v1/';
     userState.user = null;
     userState.token = null;
     userState.login = vi.fn();
@@ -61,7 +63,7 @@ describe('fetchApi', () => {
     );
 
     const result = await fetchApi<undefined, { ok: boolean }>({
-      path: '/links',
+      path: 'links',
       searchParams: {
         cursor: 123,
         active: true,
@@ -72,7 +74,7 @@ describe('fetchApi', () => {
     });
 
     expect(globalThis.fetch).toHaveBeenCalledWith(
-      'http://localhost:8080/links?cursor=123&active=true',
+      'http://localhost:8080/api/v1/links?cursor=123&active=true',
       {
         method: 'GET',
         headers: {
@@ -101,14 +103,14 @@ describe('fetchApi', () => {
     const body = { original_url: 'https://example.com' };
 
     const result = await fetchApi<typeof body, { id: number }>({
-      path: '/links',
+      path: 'links',
       method: 'POST',
       isAuthRequired: true,
       body,
       schema,
     });
 
-    expect(globalThis.fetch).toHaveBeenCalledWith('http://localhost:8080/links', {
+    expect(globalThis.fetch).toHaveBeenCalledWith('http://localhost:8080/api/v1/links', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -134,13 +136,13 @@ describe('fetchApi', () => {
     );
 
     const result = await fetchApi<undefined, { id: number }>({
-      path: '/user/me',
+      path: 'user/me',
       isAuthRequired: true,
       injectedToken: 'callback-token',
       schema,
     });
 
-    expect(globalThis.fetch).toHaveBeenCalledWith('http://localhost:8080/user/me', {
+    expect(globalThis.fetch).toHaveBeenCalledWith('http://localhost:8080/api/v1/user/me', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -158,7 +160,7 @@ describe('fetchApi', () => {
     );
 
     const result = await fetchApi<undefined, undefined>({
-      path: '/links/test',
+      path: 'links/test',
       method: 'DELETE',
     });
 
@@ -178,10 +180,12 @@ describe('fetchApi', () => {
 
     await expect(
       fetchApi<undefined, { ok: boolean }>({
-        path: '/links',
+        path: 'links',
         schema: z.object({ ok: z.boolean() }),
       }),
-    ).rejects.toThrow('Request failed for GET http://localhost:8080/links: Internal Server Error');
+    ).rejects.toThrow(
+      'Request failed for GET http://localhost:8080/api/v1/links: Internal Server Error',
+    );
   });
 
   it('rethrows when fetch itself rejects', async () => {
@@ -189,7 +193,7 @@ describe('fetchApi', () => {
 
     await expect(
       fetchApi<undefined, { ok: boolean }>({
-        path: '/links',
+        path: 'links',
         schema: z.object({ ok: z.boolean() }),
       }),
     ).rejects.toBeInstanceOf(TypeError);
@@ -207,7 +211,7 @@ describe('fetchApi', () => {
 
     await expect(
       fetchApi<undefined, { ok: boolean }>({
-        path: '/links',
+        path: 'links',
         schema: z.object({ ok: z.boolean() }),
       }),
     ).rejects.toBeInstanceOf(SyntaxError);
@@ -225,7 +229,7 @@ describe('fetchApi', () => {
 
     await expect(
       fetchApi<undefined, { ok: boolean }>({
-        path: '/links',
+        path: 'links',
         schema: z.object({ ok: z.boolean() }),
       }),
     ).rejects.toBeInstanceOf(z.ZodError);

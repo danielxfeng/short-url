@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 
 import HomePage from './index';
 
-vi.mock('@/pages/homepage/AuthGuard', () => ({
+vi.mock('@/components/homepage/AuthGuard', () => ({
   default: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
 }));
 

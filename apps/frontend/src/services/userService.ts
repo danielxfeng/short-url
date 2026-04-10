@@ -3,7 +3,7 @@ import { fetchApi } from './service';
 
 const getUserInfo = async (token: string) => {
   return fetchApi<undefined, UserRes>({
-    path: '/user/me',
+    path: 'user/me',
     method: 'GET',
     isAuthRequired: true,
     injectedToken: token,
@@ -13,7 +13,7 @@ const getUserInfo = async (token: string) => {
 
 const deleteUser = async () => {
   return fetchApi<undefined, undefined>({
-    path: '/user/me',
+    path: 'user/me',
     method: 'DELETE',
     isAuthRequired: true,
   });

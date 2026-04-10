@@ -21,7 +21,7 @@ const createLink = async (url: string): Promise<LinkRes> => {
 
 const getLinks = async (cursor?: number): Promise<LinksRes> => {
   return fetchApi<undefined, LinksRes>({
-    path: '/links',
+    path: 'links',
     isAuthRequired: true,
     searchParams: { cursor: cursor },
     schema: LinksResSchema,
@@ -30,7 +30,7 @@ const getLinks = async (cursor?: number): Promise<LinksRes> => {
 
 const deleteLink = async (code: string) => {
   return fetchApi<undefined, undefined>({
-    path: `/links/${code}`,
+    path: `links/${code}`,
     method: 'DELETE',
     isAuthRequired: true,
   });

@@ -1,9 +1,14 @@
 import { render, screen } from '@testing-library/react';
 
+import config from '@/config/config';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { LinkComp, LoginComp } from './AuthGuard';
 
 describe('AuthGuard UI', () => {
+  beforeEach(() => {
+    config.apiBaseUrl = 'http://localhost:8080/api/v1';
+  });
+
   it('renders LinkComp with the provider auth URL', () => {
     render(
       <TooltipProvider>
