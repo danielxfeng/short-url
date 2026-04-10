@@ -26,17 +26,21 @@ const DEFAULT_CURSOR = MAX_CURSOR
 const MAX_CONFLICT_RETRIES = 5
 const LENGTH_CODE = 8
 
+func LinkToDTO(link models.Link) dto.LinkResponse {
+	return dto.LinkResponse{
+		ID:          link.ID,
+		Code:        link.Code,
+		OriginalUrl: link.OriginalUrl,
+		Clicks:      link.Clicks,
+		CreatedAt:   link.CreatedAt,
+		IsDeleted:   link.DeletedAt != nil,
+	}
+}
+
 func LinksToDTO(links []models.Link) []dto.LinkResponse {
 	result := make([]dto.LinkResponse, len(links))
 	for i, link := range links {
-		result[i] = dto.LinkResponse{
-			ID:          link.ID,
-			Code:        link.Code,
-			OriginalUrl: link.OriginalUrl,
-			Clicks:      link.Clicks,
-			CreatedAt:   link.CreatedAt,
-			IsDeleted:   link.DeletedAt != nil,
-		}
+		result[i] = LinkToDTO(link)
 	}
 	return result
 }
@@ -147,7 +151,7 @@ func ShortURLRouter(dep *dep.Dep, repo models.Repository) http.Handler {
 				panic(err)
 			}
 
-			util.SendJSON(w, http.StatusCreated, link)
+			util.SendJSON(w, http.StatusCreated, LinkToDTO(link))
 		})
 
 		r.Delete("/{code}", func(w http.ResponseWriter, r *http.Request) {

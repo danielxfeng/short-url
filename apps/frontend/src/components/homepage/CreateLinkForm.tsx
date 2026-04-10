@@ -1,10 +1,79 @@
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Field, FieldError, FieldLabel } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+
+import useAddLinkForm from '@/hooks/useAddLinkForm';
+import { Send } from 'lucide-react';
+
+const handleError = (error: unknown): { message: string } | undefined => {
+  if (error instanceof Object && 'message' in error && typeof error.message === 'string')
+    return { message: error.message };
+
+  if (typeof error === 'string') return { message: error };
+
+  if (error instanceof Error) return { message: error.message };
+
+  return { message: 'An unknown error occurred' };
+};
+
+interface CreateLinkFormCompProps {
+  form: ReturnType<typeof useAddLinkForm>['form'];
+  isPending: boolean;
+}
+
+export const CreateLinkFormComp = ({ form, isPending }: CreateLinkFormCompProps) => (
+  <Card className='w-full'>
+    <CardHeader>
+      <CardTitle>Add a new link</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <form
+        id='new-link-form'
+        onSubmit={(e) => {
+          e.preventDefault();
+          form.handleSubmit();
+        }}
+        className='flex gap-4'
+      >
+        <form.Field
+          name='original_url'
+          children={(field) => {
+            const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+            return (
+              <Field data-invalid={isInvalid}>
+                <FieldLabel htmlFor={field.name} className='sr-only'>
+                  Original URL
+                </FieldLabel>
+                <Input
+                  id={field.name}
+                  name={field.name}
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  aria-invalid={isInvalid}
+                  placeholder='https://danielslab.dev'
+                  autoComplete='off'
+                />
+                {isInvalid && (
+                  <FieldError errors={field.state.meta.errors.map((e) => handleError(e))} />
+                )}
+              </Field>
+            );
+          }}
+        />
+        <Button type='submit' form='new-link-form' disabled={isPending || form.state.isSubmitting}>
+          <Send size={16} />
+        </Button>
+      </form>
+    </CardContent>
+  </Card>
+);
+
 const CreateLinkForm = () => {
-  return (
-    <div className='w-full min-h-dvh flex flex-col items-center justify-center'>
-      <h2 className='text-2xl font-bold mb-4'>Create Link Page</h2>
-      <p className='text-muted-foreground'>This is where you can create new short URLs.</p>
-    </div>
-  );
+  const { form, isPending } = useAddLinkForm();
+
+  return <CreateLinkFormComp form={form} isPending={isPending} />;
 };
 
 export default CreateLinkForm;

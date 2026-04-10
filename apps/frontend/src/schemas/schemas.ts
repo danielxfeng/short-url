@@ -23,7 +23,7 @@ export const LinkResSchema = z.object({
   code: z.string(),
   original_url: z.url(),
   clicks: z.int32(),
-  created_at: z.iso.datetime(),
+  created_at: z.iso.datetime({ offset: true }),
   is_deleted: z.boolean(),
 });
 export type LinkRes = z.infer<typeof LinkResSchema>;

@@ -550,12 +550,27 @@ func TestShortURLRouter_CreateAndDelete(t *testing.T) {
 		t.Fatalf("expected %d, got %d", http.StatusCreated, createRR.Code)
 	}
 
-	var created db.Link
+	var created dto.LinkResponse
 	if err := json.NewDecoder(createRR.Body).Decode(&created); err != nil {
 		t.Fatalf("decode created response: %v", err)
 	}
+	if created.ID == 0 {
+		t.Fatalf("expected non-zero id")
+	}
 	if created.Code == "" {
 		t.Fatalf("expected generated code")
+	}
+	if created.OriginalUrl != "https://example.com/new" {
+		t.Fatalf("expected original_url to match request, got %q", created.OriginalUrl)
+	}
+	if created.Clicks != 0 {
+		t.Fatalf("expected clicks to be 0, got %d", created.Clicks)
+	}
+	if created.IsDeleted {
+		t.Fatalf("expected is_deleted to be false")
+	}
+	if created.CreatedAt.IsZero() {
+		t.Fatalf("expected created_at to be set")
 	}
 
 	if _, err := q.GetLinkByCode(context.Background(), created.Code); err != nil {
