@@ -411,16 +411,24 @@ func TestUserRouter_GetMe(t *testing.T) {
 			verify: func(t *testing.T, q *db.Queries, seeded *db.User, rr *httptest.ResponseRecorder) {
 				t.Helper()
 				_ = q
-				_ = seeded
 				var got dto.UserResponse
 				if err := json.NewDecoder(rr.Body).Decode(&got); err != nil {
 					t.Fatalf("decode user response: %v", err)
 				}
+				if got.ID == 0 {
+					t.Fatalf("expected non-zero id")
+				}
 				if got.Provider != models.ProviderEnumGOOGLE {
 					t.Fatalf("expected provider %q, got %q", models.ProviderEnumGOOGLE, got.Provider)
 				}
-				if got.ProviderID == "" {
-					t.Fatalf("expected non-empty provider id")
+				if got.ProviderID != "seed-google-get" {
+					t.Fatalf("expected provider_id %q, got %q", "seed-google-get", got.ProviderID)
+				}
+				if got.DisplayName == nil || *got.DisplayName != "Seed User" {
+					t.Fatalf("expected display_name %q, got %v", "Seed User", got.DisplayName)
+				}
+				if got.ProfilePic == nil || *got.ProfilePic != "https://example.com/seed.png" {
+					t.Fatalf("expected profile_pic %q, got %v", "https://example.com/seed.png", got.ProfilePic)
 				}
 			},
 		},

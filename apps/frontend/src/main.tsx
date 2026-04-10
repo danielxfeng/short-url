@@ -3,6 +3,12 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import * as Sentry from '@sentry/react';
 import App from './App.tsx';
+import { BrowserRouter } from 'react-router';
+import { Toaster } from './components/ui/sonner.tsx';
+import { TooltipProvider } from './components/ui/tooltip.tsx';
+import { QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import logger from './lib/logger.ts';
 
 const container = document.getElementById('root');
 
@@ -21,8 +27,31 @@ const root = createRoot(container, {
   onRecoverableError: Sentry.reactErrorHandler(),
 });
 
+const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: (error, query) => {
+      if (query.meta?.errorMessage) {
+        const errorMessage =
+          typeof query.meta.errorMessage === 'string'
+            ? query.meta.errorMessage
+            : 'An error occurred, please try again';
+
+        logger.error('Query error', { error, queryKey: query.queryKey, errorMessage });
+        toast.error(errorMessage);
+      }
+    },
+  }),
+});
+
 root.render(
   <Sentry.ErrorBoundary fallback={<div>Something went wrong.</div>}>
-    <App />
+    <BrowserRouter>
+      <TooltipProvider>
+        <QueryClientProvider client={queryClient}>
+          <App />
+        </QueryClientProvider>
+      </TooltipProvider>
+      <Toaster richColors={true} position='top-center' />
+    </BrowserRouter>
   </Sentry.ErrorBoundary>,
 );
