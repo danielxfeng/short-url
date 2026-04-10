@@ -10,7 +10,7 @@ interface LinkCompProps {
 }
 
 const getAuthUrl = (provider: OauthProvider) =>
-  new URL(`/user/auth/${provider.toLowerCase()}`, config.apiBaseUrl).toString();
+  new URL(`user/auth/${provider.toLowerCase()}`, `${config.apiBaseUrl}/`).toString();
 
 export const LinkComp = ({ provider, icon }: LinkCompProps) => {
   const label = provider.charAt(0) + provider.slice(1).toLowerCase();

@@ -14,7 +14,7 @@ describe('AuthGuard UI', () => {
     const link = screen.getByRole('link', { name: 'Log in with Google' });
 
     expect(link).toBeInTheDocument();
-    expect(link).toHaveAttribute('href', 'http://localhost:8080/user/auth/google');
+    expect(link).toHaveAttribute('href', 'http://localhost:8080/api/v1/user/auth/google');
   });
 
   it('renders LoginComp with links for all providers', () => {
@@ -27,11 +27,11 @@ describe('AuthGuard UI', () => {
     expect(screen.getByText('Please log in to continue:')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Log in with Google' })).toHaveAttribute(
       'href',
-      'http://localhost:8080/user/auth/google',
+      'http://localhost:8080/api/v1/user/auth/google',
     );
     expect(screen.getByRole('link', { name: 'Log in with Github' })).toHaveAttribute(
       'href',
-      'http://localhost:8080/user/auth/github',
+      'http://localhost:8080/api/v1/user/auth/github',
     );
   });
 });
