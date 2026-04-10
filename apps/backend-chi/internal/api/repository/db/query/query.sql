@@ -35,7 +35,7 @@ WHERE code = $1;
 
 -- name: GetLinksByUserID :many
 SELECT * FROM links
-WHERE user_id = $1 AND deleted_at IS NULL AND id < $2
+WHERE user_id = $1 AND id < $2
 ORDER BY id DESC
 LIMIT $3;
 

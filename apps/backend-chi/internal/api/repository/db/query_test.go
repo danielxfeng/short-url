@@ -303,24 +303,28 @@ func TestGetLinksByUserID(t *testing.T) {
 	_ = store.mkLink(t, u2.ID, "u2-1")
 
 	tests := []struct {
-		name      string
-		arg       db.GetLinksByUserIDParams
-		wantCodes []string
+		name        string
+		arg         db.GetLinksByUserIDParams
+		wantCodes   []string
+		wantDeleted map[string]bool
 	}{
 		{
-			name:      "returns active links desc",
-			arg:       db.GetLinksByUserIDParams{UserID: u1.ID, ID: 1<<31 - 1, Limit: 10},
-			wantCodes: []string{l3.Code, l1.Code},
+			name:        "returns links including soft deleted desc",
+			arg:         db.GetLinksByUserIDParams{UserID: u1.ID, ID: 1<<31 - 1, Limit: 10},
+			wantCodes:   []string{l3.Code, l2.Code, l1.Code},
+			wantDeleted: map[string]bool{l2.Code: true},
 		},
 		{
-			name:      "respects cursor and limit",
-			arg:       db.GetLinksByUserIDParams{UserID: u1.ID, ID: l3.ID, Limit: 1},
-			wantCodes: []string{l1.Code},
+			name:        "respects cursor and limit",
+			arg:         db.GetLinksByUserIDParams{UserID: u1.ID, ID: l3.ID, Limit: 1},
+			wantCodes:   []string{l2.Code},
+			wantDeleted: map[string]bool{l2.Code: true},
 		},
 		{
-			name:      "other user isolated",
-			arg:       db.GetLinksByUserIDParams{UserID: u2.ID, ID: 1<<31 - 1, Limit: 10},
-			wantCodes: []string{"u2-1"},
+			name:        "other user isolated",
+			arg:         db.GetLinksByUserIDParams{UserID: u2.ID, ID: 1<<31 - 1, Limit: 10},
+			wantCodes:   []string{"u2-1"},
+			wantDeleted: map[string]bool{},
 		},
 	}
 
@@ -336,6 +340,9 @@ func TestGetLinksByUserID(t *testing.T) {
 			for i, code := range tc.wantCodes {
 				if got[i].Code != code {
 					t.Fatalf("unexpected code at %d: got %q want %q", i, got[i].Code, code)
+				}
+				if isDeleted := got[i].DeletedAt != nil; isDeleted != tc.wantDeleted[code] {
+					t.Fatalf("unexpected deleted state for %q: got %v want %v", code, isDeleted, tc.wantDeleted[code])
 				}
 			}
 		})

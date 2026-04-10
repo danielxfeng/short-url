@@ -403,7 +403,7 @@ func TestShortURLRouter_ListRequiresAuthAndSupportsPagination(t *testing.T) {
 	}
 }
 
-func TestShortURLRouter_ListExcludesSoftDeletedLinks(t *testing.T) {
+func TestShortURLRouter_ListIncludesSoftDeletedLinks(t *testing.T) {
 	d, q, _ := newShortURLIntegrationSetup(t, 42)
 	h := ShortURLRouter(d, newShortURLTestRepo(q))
 	u := seedUser(t, q, "list-soft-user")
@@ -431,8 +431,8 @@ func TestShortURLRouter_ListExcludesSoftDeletedLinks(t *testing.T) {
 		t.Fatalf("decode response: %v", err)
 	}
 
-	if len(resp.Links) != 2 {
-		t.Fatalf("expected 2 links, got %d", len(resp.Links))
+	if len(resp.Links) != 3 {
+		t.Fatalf("expected 3 links, got %d", len(resp.Links))
 	}
 	if resp.HasMore {
 		t.Fatalf("expected has_more=false got true")
@@ -441,15 +441,22 @@ func TestShortURLRouter_ListExcludesSoftDeletedLinks(t *testing.T) {
 		t.Fatalf("expected nil cursor, got %v", *resp.Cursor)
 	}
 
-	gotCodes := map[string]bool{}
+	gotByCode := map[string]dto.LinkResponse{}
 	for _, l := range resp.Links {
-		gotCodes[l.Code] = true
-		if l.Code == deleted.Code {
-			t.Fatalf("expected deleted code %q to be excluded", deleted.Code)
-		}
+		gotByCode[l.Code] = l
 	}
-	if !gotCodes[l1.Code] || !gotCodes[l2.Code] {
-		t.Fatalf("expected active codes %q and %q in response", l1.Code, l2.Code)
+	if _, ok := gotByCode[l1.Code]; !ok {
+		t.Fatalf("expected active code %q in response", l1.Code)
+	}
+	if _, ok := gotByCode[l2.Code]; !ok {
+		t.Fatalf("expected active code %q in response", l2.Code)
+	}
+	deletedResp, ok := gotByCode[deleted.Code]
+	if !ok {
+		t.Fatalf("expected deleted code %q in response", deleted.Code)
+	}
+	if !deletedResp.IsDeleted {
+		t.Fatalf("expected deleted code %q to have is_deleted=true", deleted.Code)
 	}
 }
 

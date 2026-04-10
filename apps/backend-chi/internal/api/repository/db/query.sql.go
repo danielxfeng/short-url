@@ -101,7 +101,7 @@ func (q *Queries) GetLinkByCodeWithDeleted(ctx context.Context, code string) (Li
 
 const getLinksByUserID = `-- name: GetLinksByUserID :many
 SELECT id, user_id, code, original_url, clicks, created_at, deleted_at FROM links
-WHERE user_id = $1 AND deleted_at IS NULL AND id < $2
+WHERE user_id = $1 AND id < $2
 ORDER BY id DESC
 LIMIT $3
 `
