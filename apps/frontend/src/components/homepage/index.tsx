@@ -1,4 +1,4 @@
-import AuthGuard from '@/pages/homepage/AuthGuard';
+import AuthGuard from '@/components/homepage/AuthGuard';
 import CreateLinkForm from './CreateLinkForm';
 import LinksTable from './LinksTable';
 

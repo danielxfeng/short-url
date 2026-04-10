@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 
-import { TooltipProvider } from '../../components/ui/tooltip';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { LinkComp, LoginComp } from './AuthGuard';
 
 describe('AuthGuard UI', () => {
