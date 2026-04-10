@@ -102,6 +102,7 @@ func newUserIntegrationSetup(t *testing.T) *userTestApp {
 		AppMode:             dep.EnvTest,
 		JWTSecret:           "test-secret",
 		JWTExpiry:           time.Hour,
+		BackendPublicURL:    "https://api.example.com",
 		FrontendRedirectURL: "https://frontend.example.com/auth/callback",
 	}
 

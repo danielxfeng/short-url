@@ -23,6 +23,7 @@ type Config struct {
 	AppMode             AppModeType
 	Port                int
 	Cors                string
+	BackendPublicURL    string
 	SentryDSN           string
 	DbURL               string
 	TestDbURL           string
@@ -89,6 +90,7 @@ func LoadConfigFromEnv() (*Config, error) {
 		AppMode:             LoadAppMode(),
 		Port:                GetEnvIntOrDefault("PORT", 8080),
 		Cors:                GetEnvStrOrDefault("CORS", "http://localhost:5173"),
+		BackendPublicURL:    GetEnvStrOrDefault("BACKEND_PUBLIC_URL", "http://localhost:8080"),
 		SentryDSN:           GetEnvStrOrDefault("SENTRY_DSN", ""),
 		DbURL:               GetEnvStrOrDefault("DB_URL", "postgresql://user:password@localhost:5432/dbname?sslmode=disable"),
 		TestDbURL:           GetEnvStrOrDefault("TEST_DB_URL", "postgresql://user:password@localhost:5432/test_dbname?sslmode=disable"),
