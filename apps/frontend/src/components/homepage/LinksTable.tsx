@@ -101,7 +101,10 @@ export const LinkRowComp = ({
             <div className='flex items-center justify-center gap-4'>
               {/* Delete/Restore button */}
               <Button
-                onClick={() => void operationHandler(link.is_deleted ? 'restore' : 'remove')}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  void operationHandler(link.is_deleted ? 'restore' : 'remove');
+                }}
                 disabled={isPending}
                 variant={link.is_deleted ? 'outline' : 'destructive'}
                 size='xs'
@@ -113,7 +116,12 @@ export const LinkRowComp = ({
               {link.is_deleted && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant='destructive' size='xs'>
+                    <Button
+                      variant='destructive'
+                      size='xs'
+                      onClick={(e) => void e.stopPropagation()}
+                      disabled={isPending}
+                    >
                       {isPending ? <Spinner /> : 'Permanently Delete'}
                     </Button>
                   </AlertDialogTrigger>
