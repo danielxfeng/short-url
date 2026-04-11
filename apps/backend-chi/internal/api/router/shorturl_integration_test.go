@@ -635,6 +635,35 @@ func TestShortURLRouter_CreateAndDelete(t *testing.T) {
 	if restored.DeletedAt != nil {
 		t.Fatalf("expected restored link to have nil deleted_at")
 	}
+
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, authedReq(http.MethodDelete, "/"+created.Code+"/permanent", tokenForUser, nil))
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("expected %d, got %d", http.StatusNotFound, rr.Code)
+	}
+
+	rr = httptest.NewRecorder()
+	h.ServeHTTP(rr, authedReq(http.MethodDelete, "/"+created.Code, tokenForUser, nil))
+	if rr.Code != http.StatusNoContent {
+		t.Fatalf("expected %d, got %d", http.StatusNoContent, rr.Code)
+	}
+
+	rr = httptest.NewRecorder()
+	h.ServeHTTP(rr, authedReq(http.MethodDelete, "/"+created.Code+"/permanent", tokenForUser, nil))
+	if rr.Code != http.StatusNoContent {
+		t.Fatalf("expected %d, got %d", http.StatusNoContent, rr.Code)
+	}
+
+	_, err = q.GetLinkByCodeWithDeleted(context.Background(), created.Code)
+	if !errors.Is(err, pgx.ErrNoRows) {
+		t.Fatalf("expected permanently deleted link to be removed, got err=%v", err)
+	}
+
+	rr = httptest.NewRecorder()
+	h.ServeHTTP(rr, authedReq(http.MethodDelete, "/"+created.Code+"/permanent", tokenForUser, nil))
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("expected %d, got %d", http.StatusNotFound, rr.Code)
+	}
 }
 
 func TestShortURLRouter_DeleteForeignOwnedLinkReturnsNotFound(t *testing.T) {

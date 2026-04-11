@@ -51,6 +51,11 @@ SET deleted_at = NULL
 WHERE code = $1 AND user_id = $2 AND deleted_at IS NOT NULL
 RETURNING id;
 
+-- name: PermanentlyDeleteLink :one
+DELETE FROM links
+WHERE code = $1 AND user_id = $2 AND deleted_at IS NOT NULL
+RETURNING id;
+
 -- name: SetLinkClicked :one
 UPDATE links
 SET clicks = clicks + 1

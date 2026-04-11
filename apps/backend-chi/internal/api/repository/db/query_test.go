@@ -521,6 +521,49 @@ func TestSetLinkRestored(t *testing.T) {
 	}
 }
 
+func TestPermanentlyDeleteLink(t *testing.T) {
+	store := newTestStore(t)
+	q := store.q
+	u1 := store.mkUser(t, "permanent-delete-u1")
+	u2 := store.mkUser(t, "permanent-delete-u2")
+	active := store.mkLink(t, u1.ID, "active-permanent-link")
+	deleted := store.mkLink(t, u1.ID, "deleted-permanent-link")
+	if _, err := q.SetLinkDeleted(context.Background(), db.SetLinkDeletedParams{Code: deleted.Code, UserID: u1.ID}); err != nil {
+		t.Fatalf("seed deleted link: %v", err)
+	}
+
+	tests := []struct {
+		name    string
+		arg     db.PermanentlyDeleteLinkParams
+		wantErr bool
+		wantID  int32
+	}{
+		{name: "happy", arg: db.PermanentlyDeleteLinkParams{Code: deleted.Code, UserID: u1.ID}, wantID: deleted.ID},
+		{name: "wrong user", arg: db.PermanentlyDeleteLinkParams{Code: deleted.Code, UserID: u2.ID}, wantErr: true},
+		{name: "active link", arg: db.PermanentlyDeleteLinkParams{Code: active.Code, UserID: u1.ID}, wantErr: true},
+		{name: "missing link", arg: db.PermanentlyDeleteLinkParams{Code: "missing", UserID: u1.ID}, wantErr: true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := q.PermanentlyDeleteLink(context.Background(), tc.arg)
+			if tc.wantErr {
+				expectNoRows(t, err)
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if got != tc.wantID {
+				t.Fatalf("unexpected id: got %d want %d", got, tc.wantID)
+			}
+
+			_, err = q.GetLinkByCodeWithDeleted(context.Background(), tc.arg.Code)
+			expectNoRows(t, err)
+		})
+	}
+}
+
 func TestUpsertUser(t *testing.T) {
 	store := newTestStore(t)
 	q := store.q
