@@ -1,6 +1,7 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 
+import type { LinkRes } from '@/schemas/schemas';
 import { CreateLinkFormComp } from './CreateLinkForm';
 
 type MockField = {
@@ -54,13 +55,33 @@ const createFormMock = (overrides?: {
   return { form: form as never, handleSubmit, handleBlur, handleChange };
 };
 
+const addedLink: LinkRes = {
+  id: 1,
+  code: 'abc123',
+  original_url: 'https://example.com',
+  clicks: 0,
+  created_at: '2026-04-10T22:10:05.91425+03:00',
+  is_deleted: false,
+};
+
 describe('CreateLinkFormComp', () => {
+  const writeText = vi.fn().mockResolvedValue(undefined);
+
+  beforeEach(() => {
+    vi.stubGlobal('navigator', {
+      clipboard: {
+        writeText,
+      },
+    });
+    writeText.mockClear();
+  });
+
   it('renders the input and submits the form', () => {
     const { form, handleSubmit, handleChange, handleBlur } = createFormMock({
       value: 'https://example.com',
     });
 
-    render(<CreateLinkFormComp form={form} isPending={false} />);
+    render(<CreateLinkFormComp form={form} isPending={false} addedLink={null} />);
 
     const input = screen.getByLabelText('Original URL');
     expect(input).toHaveValue('https://example.com');
@@ -81,7 +102,7 @@ describe('CreateLinkFormComp', () => {
       errors: ['Invalid URL'],
     });
 
-    render(<CreateLinkFormComp form={form} isPending={false} />);
+    render(<CreateLinkFormComp form={form} isPending={false} addedLink={null} />);
 
     expect(screen.getByRole('alert')).toHaveTextContent('Invalid URL');
   });
@@ -90,10 +111,29 @@ describe('CreateLinkFormComp', () => {
     const pendingForm = createFormMock().form;
     const submittingForm = createFormMock({ isSubmitting: true }).form;
 
-    const { rerender } = render(<CreateLinkFormComp form={pendingForm} isPending={true} />);
+    const { rerender } = render(
+      <CreateLinkFormComp form={pendingForm} isPending={true} addedLink={null} />,
+    );
     expect(screen.getByRole('button')).toBeDisabled();
 
-    rerender(<CreateLinkFormComp form={submittingForm} isPending={false} />);
+    rerender(<CreateLinkFormComp form={submittingForm} isPending={false} addedLink={null} />);
     expect(screen.getByRole('button')).toBeDisabled();
+  });
+
+  it('shows the created link block and copies the short link', async () => {
+    const { form } = createFormMock();
+
+    render(<CreateLinkFormComp form={form} isPending={false} addedLink={addedLink} />);
+
+    const resultLink = screen.getByRole('link', { name: 'http://localhost:3000/abc123' });
+    expect(screen.getByText('Added link')).toBeInTheDocument();
+    expect(resultLink).toHaveAttribute('href', 'http://localhost:3000/abc123');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Copy' }));
+
+    await waitFor(() => {
+      expect(writeText).toHaveBeenCalledWith('http://localhost:3000/abc123');
+    });
+    expect(screen.getByRole('button', { name: 'Copied' })).toBeInTheDocument();
   });
 });
