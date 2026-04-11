@@ -1,4 +1,12 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "rewrites": [{ "source": "/:path*", "destination": "/" }]
+  "rewrites": [
+    { "source": "/not-found", "destination": "/" },
+    { "source": "/auth/:path*", "destination": "/" },
+    {
+      "source": "/:code([A-Za-z0-9-]+)",
+      "destination": "https://api-s.danielslab.dev/api/v1/short-urls/:code"
+    },
+    { "source": "/:path*", "destination": "/" }
+  ]
 }

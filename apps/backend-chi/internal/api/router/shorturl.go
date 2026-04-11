@@ -56,7 +56,8 @@ func ShortURLRouter(dep *dep.Dep, repo models.Repository) http.Handler {
 
 		if err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
-				http.Redirect(w, r, dep.Cfg.NotFoundPage, http.StatusFound)
+				redirectURL := util.AssembleURL(dep.Cfg.NotFoundPage, "invalid-url", code)
+				http.Redirect(w, r, redirectURL, http.StatusFound)
 				return
 			}
 			panic(err)

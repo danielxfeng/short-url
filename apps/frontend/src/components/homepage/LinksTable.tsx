@@ -80,6 +80,7 @@ export const LinkRowComp = ({
                 target='_blank'
                 rel='noopener noreferrer'
                 className='hover:underline truncate block'
+                onClick={(e) => e.stopPropagation()}
               >
                 {link.code}
               </a>

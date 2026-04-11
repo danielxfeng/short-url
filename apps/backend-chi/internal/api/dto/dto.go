@@ -2,6 +2,7 @@ package dto
 
 import (
 	"reflect"
+	"regexp"
 	"strings"
 	"time"
 
@@ -10,10 +11,12 @@ import (
 )
 
 var Validate *validator.Validate
+var shortCodePattern = regexp.MustCompile(`^[A-Za-z0-9-]+$`)
 
 func InitValidator() {
 	Validate = validator.New()
 	_ = Validate.RegisterValidation("trim", trimValue) // SIDE EFFECT: trims the value
+	_ = Validate.RegisterValidation("shortcode", shortCodeValue)
 }
 
 // Space Trimming, SIDE EFFECT!
@@ -46,6 +49,28 @@ func trimValue(fl validator.FieldLevel) bool {
 	return true
 }
 
+func shortCodeValue(fl validator.FieldLevel) bool {
+	field := fl.Field()
+
+	switch field.Kind() {
+	case reflect.String:
+		return shortCodePattern.MatchString(field.String())
+	case reflect.Pointer:
+		if field.IsNil() {
+			return true
+		}
+
+		elem := field.Elem()
+		if elem.Kind() != reflect.String {
+			return false
+		}
+
+		return shortCodePattern.MatchString(elem.String())
+	default:
+		return false
+	}
+}
+
 type APIErrorRes struct {
 	Error string `json:"error"`
 }
@@ -72,7 +97,7 @@ type UserWithTokenResponse struct {
 
 type CreateLinkReq struct {
 	OriginalUrl string  `json:"original_url" validate:"required,trim,url"`
-	Code        *string `json:"code,omitempty" validate:"omitempty,trim,min=1,max=255"`
+	Code        *string `json:"code,omitempty" validate:"omitempty,trim,min=1,max=255,shortcode"`
 	Note        *string `json:"note,omitempty" validate:"omitempty,trim,min=1,max=255"`
 }
 

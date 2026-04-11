@@ -13,10 +13,22 @@ export const UserResSchema = z.object({
 });
 export type UserRes = z.infer<typeof UserResSchema>;
 
+const isAlphaNumericDash = (str: string) => /^[a-zA-Z0-9-]+$/.test(str);
+
+export const CodeSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(255)
+  .nullish()
+  .refine((val) => val === null || val === undefined || isAlphaNumericDash(val), {
+    message: 'Code can only contain letters, numbers, and dashes',
+  });
+
 export const CreateLinkReqSchema = z.object({
   original_url: z.url(),
-  code: z.union([z.string().trim().min(1).max(255), z.null(), z.undefined()]),
-  note: z.union([z.string().trim().min(1).max(255), z.null(), z.undefined()]),
+  code: CodeSchema,
+  note: z.string().trim().max(255).nullish(),
 });
 export type CreateLinkReq = z.infer<typeof CreateLinkReqSchema>;
 
