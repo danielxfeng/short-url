@@ -10,22 +10,59 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Spinner } from '../ui/spinner';
+import { Spinner } from '@/components/ui/spinner';
 import type { LinkRes } from '@/schemas/schemas';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface LinkRowCompProps {
   link: LinkRes;
   removeLink: (code: string) => Promise<void>;
   restoreDeleted: (code: string) => Promise<void>;
+  permanentlyDelete: (code: string) => Promise<void>;
   isPending: boolean;
 }
 
-export const LinkRowComp = ({ link, removeLink, restoreDeleted, isPending }: LinkRowCompProps) => {
+export const LinkRowComp = ({
+  link,
+  removeLink,
+  restoreDeleted,
+  permanentlyDelete,
+  isPending,
+}: LinkRowCompProps) => {
   const [showDeleteBtn, setShowDeleteBtn] = useState(false);
-  const operationHandler = link.is_deleted ? restoreDeleted : removeLink;
+  const operationHandler = async (method: 'remove' | 'restore' | 'permanently delete') => {
+    try {
+      switch (method) {
+        case 'remove':
+          await removeLink(link.code);
+          break;
+        case 'restore':
+          await restoreDeleted(link.code);
+          break;
+        case 'permanently delete':
+          await permanentlyDelete(link.code);
+          break;
+      }
+      setShowDeleteBtn(false);
+      toast.success(`Link ${method}d successfully.`);
+    } catch {
+      toast.error(`Failed to ${method} the link. Please try again.`);
+    }
+  };
 
   return (
     <>
@@ -37,7 +74,7 @@ export const LinkRowComp = ({ link, removeLink, restoreDeleted, isPending }: Lin
             href={`/${link.code}`}
             target='_blank'
             rel='noopener noreferrer'
-            className='text-primary hover:underline'
+            className='hover:underline'
           >
             {link.code}
           </a>
@@ -54,18 +91,45 @@ export const LinkRowComp = ({ link, removeLink, restoreDeleted, isPending }: Lin
       {showDeleteBtn && (
         <TableRow>
           <TableCell colSpan={3} className='text-center'>
-            <Button
-              onClick={async () => {
-                await operationHandler(link.code);
-                setShowDeleteBtn(false);
-              }}
-              disabled={isPending}
-              variant={link.is_deleted ? 'outline' : 'destructive'}
-              size='xs'
-              className='w-1/2'
-            >
-              {link.is_deleted ? 'Restore' : 'Delete'}
-            </Button>
+            <div className='flex items-center justify-center gap-4'>
+              <Button
+                onClick={() => void operationHandler(link.is_deleted ? 'restore' : 'remove')}
+                disabled={isPending}
+                variant={link.is_deleted ? 'outline' : 'destructive'}
+                size='xs'
+              >
+                {isPending ? <Spinner /> : link.is_deleted ? 'Restore' : 'Delete'}
+              </Button>
+
+              {link.is_deleted && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant='destructive' size='xs'>
+                      {isPending ? <Spinner /> : 'Permanently Delete'}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete the link with
+                        code <strong>{link.code}</strong>.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel variant='outline'>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        variant='destructive'
+                        disabled={isPending}
+                        onClick={() => void operationHandler('permanently delete')}
+                      >
+                        {isPending ? <Spinner /> : 'Permanently Delete'}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+            </div>
           </TableCell>
         </TableRow>
       )}
@@ -81,6 +145,7 @@ interface LinkTableCompProps {
   isFetchingNext: boolean;
   removeLink: (code: string) => Promise<void>;
   restoreDeleted: (code: string) => Promise<void>;
+  permanentlyDelete: (code: string) => Promise<void>;
   isPending: boolean;
 }
 
@@ -92,6 +157,7 @@ export const LinkTableComp = ({
   isFetchingNext,
   removeLink,
   restoreDeleted,
+  permanentlyDelete,
   isPending,
 }: LinkTableCompProps) => (
   <section>
@@ -113,6 +179,7 @@ export const LinkTableComp = ({
               link={link}
               removeLink={removeLink}
               restoreDeleted={restoreDeleted}
+              permanentlyDelete={permanentlyDelete}
               isPending={isPending}
             />
           ))}
@@ -139,7 +206,7 @@ export const LinkTableComp = ({
 
 const LinksTable = () => {
   const { data, hasNext, fetchNext, isFetching, isFetchingNext } = useLinks();
-  const { removeLink, restoreDeleted, isPending } = useMutateLink();
+  const { removeLink, restoreDeleted, permanentlyDelete, isPending } = useMutateLink();
 
   return (
     <LinkTableComp
@@ -150,6 +217,7 @@ const LinksTable = () => {
       isFetchingNext={isFetchingNext}
       removeLink={removeLink}
       restoreDeleted={restoreDeleted}
+      permanentlyDelete={permanentlyDelete}
       isPending={isPending}
     />
   );

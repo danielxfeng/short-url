@@ -44,4 +44,12 @@ const restoreLink = async (code: string) => {
   });
 };
 
-export { createLink, getLinks, deleteLink, restoreLink };
+const permanentlyDeleteLink = async (code: string) => {
+  return fetchApi<undefined, undefined>({
+    path: `short-urls/${code}/permanent`,
+    method: 'DELETE',
+    isAuthRequired: true,
+  });
+};
+
+export { createLink, getLinks, deleteLink, restoreLink, permanentlyDeleteLink };
