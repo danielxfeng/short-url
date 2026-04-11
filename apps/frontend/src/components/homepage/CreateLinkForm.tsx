@@ -23,25 +23,19 @@ interface CreateLinkFormCompProps {
   form: ReturnType<typeof useAddLinkForm>['form'];
   isPending: boolean;
   addedLink: ReturnType<typeof useAddLinkForm>['addedLink'];
+  shortLink: string;
+  copied: boolean;
+  handleCopy: () => Promise<void>;
 }
 
-export const CreateLinkFormComp = ({ form, isPending, addedLink }: CreateLinkFormCompProps) => {
-  const [copied, setCopied] = useState(false);
-
-  const shortLink = addedLink ? `${window.location.origin}/${addedLink.code}` : '';
-
-  const handleCopy = async () => {
-    if (!addedLink) return;
-
-    try {
-      await navigator.clipboard.writeText(shortLink);
-      setCopied(true);
-      toast.success('Copied short link to clipboard.');
-    } catch {
-      toast.error('Failed to copy short link. Please try again.');
-    }
-  };
-
+export const CreateLinkFormComp = ({
+  form,
+  isPending,
+  addedLink,
+  shortLink,
+  copied,
+  handleCopy,
+}: CreateLinkFormCompProps) => {
   return (
     <Card className='w-full'>
       <CardHeader>
@@ -118,8 +112,31 @@ export const CreateLinkFormComp = ({ form, isPending, addedLink }: CreateLinkFor
 
 const CreateLinkForm = () => {
   const { form, isPending, addedLink } = useAddLinkForm();
+  const [copied, setCopied] = useState(false);
+  const shortLink = addedLink ? `${window.location.origin}/${addedLink.code}` : '';
 
-  return <CreateLinkFormComp form={form} isPending={isPending} addedLink={addedLink} />;
+  const handleCopy = async () => {
+    if (!addedLink) return;
+
+    try {
+      await navigator.clipboard.writeText(shortLink);
+      setCopied(true);
+      toast.success('Copied short link to clipboard.');
+    } catch {
+      toast.error('Failed to copy short link. Please try again.');
+    }
+  };
+
+  return (
+    <CreateLinkFormComp
+      form={form}
+      isPending={isPending}
+      addedLink={addedLink}
+      shortLink={shortLink}
+      copied={copied}
+      handleCopy={handleCopy}
+    />
+  );
 };
 
 export default CreateLinkForm;
