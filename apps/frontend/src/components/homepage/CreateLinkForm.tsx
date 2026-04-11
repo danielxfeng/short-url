@@ -48,42 +48,99 @@ export const CreateLinkFormComp = ({
             e.preventDefault();
             form.handleSubmit();
           }}
-          className='flex gap-4'
+          className='flex flex-col gap-4'
         >
-          <form.Field
-            name='original_url'
-            children={(field) => {
-              const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-              return (
-                <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name} className='sr-only'>
-                    Original URL
-                  </FieldLabel>
-                  <Input
-                    id={field.name}
-                    name={field.name}
-                    value={field.state.value}
-                    onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    aria-invalid={isInvalid}
-                    placeholder='https://danielslab.dev'
-                    autoComplete='off'
-                  />
-                  {isInvalid && (
-                    <FieldError errors={field.state.meta.errors.map((e) => handleError(e))} />
-                  )}
-                </Field>
-              );
-            }}
-          />
+          <div className='flex gap-4'>
+            <form.Field
+              name='original_url'
+              children={(field) => {
+                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                return (
+                  <Field data-invalid={isInvalid}>
+                    <FieldLabel htmlFor={field.name} className='sr-only'>
+                      Original URL
+                    </FieldLabel>
+                    <Input
+                      id={field.name}
+                      name={field.name}
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      aria-invalid={isInvalid}
+                      placeholder='https://danielslab.dev'
+                      autoComplete='off'
+                    />
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors.map((e) => handleError(e))} />
+                    )}
+                  </Field>
+                );
+              }}
+            />
+            <Button
+              type='submit'
+              form='new-link-form'
+              disabled={isPending || form.state.isSubmitting}
+            >
+              <Send size={16} />
+            </Button>
+          </div>
 
-          <Button
-            type='submit'
-            form='new-link-form'
-            disabled={isPending || form.state.isSubmitting}
-          >
-            <Send size={16} />
-          </Button>
+          <div className='flex flex-col lg:flex-row gap-4'>
+            <form.Field
+              name='code'
+              children={(field) => {
+                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                return (
+                  <Field data-invalid={isInvalid}>
+                    <FieldLabel htmlFor={field.name} className='sr-only'>
+                      Custom code (optional)
+                    </FieldLabel>
+                    <Input
+                      id={field.name}
+                      name={field.name}
+                      value={field.state.value ?? ''}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      aria-invalid={isInvalid}
+                      placeholder='Custom code (optional)'
+                      autoComplete='off'
+                    />
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors.map((e) => handleError(e))} />
+                    )}
+                  </Field>
+                );
+              }}
+            />
+
+            <form.Field
+              name='note'
+              children={(field) => {
+                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+                return (
+                  <Field data-invalid={isInvalid}>
+                    <FieldLabel htmlFor={field.name} className='sr-only'>
+                      Note (optional)
+                    </FieldLabel>
+                    <Input
+                      id={field.name}
+                      name={field.name}
+                      value={field.state.value ?? ''}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      aria-invalid={isInvalid}
+                      placeholder='Note (optional)'
+                      autoComplete='off'
+                    />
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors.map((e) => handleError(e))} />
+                    )}
+                  </Field>
+                );
+              }}
+            />
+          </div>
         </form>
       </CardContent>
 

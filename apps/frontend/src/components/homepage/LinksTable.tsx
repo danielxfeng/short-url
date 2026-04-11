@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { LinkRes } from '@/schemas/schemas';
 import { cn } from '@/lib/utils';
 import { useState, type Dispatch } from 'react';
@@ -72,19 +73,21 @@ export const LinkRowComp = ({
         <TableCell
           className={cn('text-center', link.is_deleted && 'line-through text-muted-foreground')}
         >
-          <a
-            href={`/${link.code}`}
-            target='_blank'
-            rel='noopener noreferrer'
-            className='hover:underline'
-          >
-            {link.code}
-          </a>
-        </TableCell>
-
-        {/* Original URL */}
-        <TableCell className={link.is_deleted ? 'line-through text-muted-foreground' : undefined}>
-          {link.original_url}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <a
+                href={`/${link.code}`}
+                target='_blank'
+                rel='noopener noreferrer'
+                className='hover:underline truncate block'
+              >
+                {link.code}
+              </a>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{link.original_url}</p>
+            </TooltipContent>
+          </Tooltip>
         </TableCell>
 
         {/* Clicks */}
@@ -92,6 +95,13 @@ export const LinkRowComp = ({
           className={cn('text-center', link.is_deleted && 'line-through text-muted-foreground')}
         >
           {link.clicks}
+        </TableCell>
+
+        {/* Note */}
+        <TableCell
+          className={cn('text-center', link.is_deleted && 'line-through text-muted-foreground')}
+        >
+          <div className='truncate'>{link.note}</div>
         </TableCell>
       </TableRow>
 
@@ -102,6 +112,7 @@ export const LinkRowComp = ({
             <div className='flex items-center justify-center gap-4'>
               {/* Delete/Restore button */}
               <Button
+                className='px-4'
                 onClick={(e) => {
                   e.stopPropagation();
                   void operationHandler(link.is_deleted ? 'restore' : 'remove');
@@ -119,6 +130,7 @@ export const LinkRowComp = ({
                   <AlertDialogTrigger asChild>
                     <Button
                       variant='destructive'
+                      className='px-4'
                       size='xs'
                       onClick={(e) => void e.stopPropagation()}
                       disabled={isPending}
@@ -185,9 +197,9 @@ export const LinkTableComp = ({
         <TableCaption className='sr-only'>The list of links.</TableCaption>
         <TableHeader>
           <TableRow>
-            <TableHead className='w-20 text-center'>Code</TableHead>
-            <TableHead className='text-center'>URL</TableHead>
+            <TableHead className='w-28 text-center'>Code</TableHead>
             <TableHead className='w-20 text-center'>Clicks</TableHead>
+            <TableHead className='text-center'>Note</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

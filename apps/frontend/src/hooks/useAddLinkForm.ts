@@ -3,6 +3,7 @@ import { useForm } from '@tanstack/react-form';
 import useMutateLink from './useMutateLink';
 import { toast } from 'sonner';
 import { useState } from 'react';
+import { ApiError } from '@/services/service';
 
 const useAddLinkForm = () => {
   const [addedLink, setAddedLink] = useState<LinkRes | undefined | null>(null);
@@ -11,6 +12,8 @@ const useAddLinkForm = () => {
   const form = useForm({
     defaultValues: {
       original_url: '',
+      code: undefined as string | undefined | null,
+      note: undefined as string | undefined | null,
     },
     validators: {
       onSubmit: CreateLinkReqSchema,
@@ -18,16 +21,29 @@ const useAddLinkForm = () => {
       // I put the business logic here, until I find a better way
       // to handle the errors coming from the server.
       // ref: https://www.answeroverflow.com/m/1192055132851032125
-      onSubmitAsync: async ({ value }) => {
+      onSubmitAsync: async ({ value, formApi }) => {
         try {
-          const result = await mutation.addLink(value.original_url);
+          const parsed = CreateLinkReqSchema.parse(value);
+
+          formApi.setFieldValue('original_url', parsed.original_url);
+          formApi.setFieldValue('code', parsed.code ?? undefined);
+          formApi.setFieldValue('note', parsed.note ?? undefined);
+
+          const result = await mutation.addLink(parsed);
           setAddedLink(result);
-        } catch {
-          return {
-            fields: {
-              original_url: 'Failed to add link. Please try again.',
-            },
-          };
+        } catch (error: unknown) {
+          if (error instanceof ApiError && error.status === 409) {
+            return {
+              fields: {
+                code: error.message || 'Code already exists. Please choose another one.',
+              },
+            };
+          }
+
+          let msg = 'Failed to add link. Please try again.';
+          if (error instanceof Error && error.message) msg = error.message;
+
+          return { fields: { original_url: msg } };
         }
       },
     },

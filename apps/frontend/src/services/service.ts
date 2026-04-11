@@ -9,6 +9,18 @@ export type HttpMethod = (typeof method)[number];
 const QueryParamValue = z.union([z.string(), z.number(), z.boolean(), z.null(), z.undefined()]);
 export type QueryParamValue = z.infer<typeof QueryParamValue>;
 
+export class ApiError extends Error {
+  status: number;
+  body?: unknown;
+
+  constructor(message: string, status: number, body?: unknown) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.body = body;
+  }
+}
+
 interface FetchApiParams<Tbody, Tresponse> {
   path: string;
   isAuthRequired?: boolean;
@@ -67,7 +79,24 @@ export const fetchApi = async <Tbody, Tresponse>(
       throw new Error('Unauthorized');
     }
 
-    throw new Error(`Request failed for ${method} ${url.toString()}: ${response.statusText}`);
+    let errorBody: unknown;
+    let errorMessage = `Request failed for ${method} ${url.toString()}: ${response.statusText}`;
+
+    try {
+      errorBody = await response.clone().json();
+      if (
+        errorBody &&
+        typeof errorBody === 'object' &&
+        'error' in errorBody &&
+        typeof errorBody.error === 'string'
+      ) {
+        errorMessage = errorBody.error;
+      }
+    } catch {
+      // Ignore non-JSON error bodies and fall back to the default message.
+    }
+
+    throw new ApiError(errorMessage, response.status, errorBody);
   }
 
   if (!schema) return undefined as unknown as Tresponse;
