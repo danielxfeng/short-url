@@ -124,44 +124,61 @@ describe('LinkRowComp', () => {
 });
 
 describe('LinkTableComp', () => {
+  const loadMoreRef = { current: null };
+
   it('shows a loading spinner while fetching with no data', () => {
     render(
       <LinkTableComp
         data={undefined}
         hasNext={false}
-        fetchNext={() => undefined}
         isFetching
         isFetchingNext={false}
         removeLink={async () => undefined}
         restoreDeleted={async () => undefined}
         permanentlyDelete={async () => undefined}
         isPending={false}
+        loadMoreRef={loadMoreRef}
       />,
     );
 
     expect(screen.getByRole('status', { name: 'Loading' })).toBeInTheDocument();
   });
 
-  it('renders and triggers the load-more action', () => {
-    let fetchCount = 0;
-
+  it('renders the infinite-scroll sentinel when there are more pages', () => {
     render(
       <LinkTableComp
         data={[activeLink, deletedLink]}
         hasNext
-        fetchNext={() => {
-          fetchCount += 1;
-        }}
         isFetching={false}
         isFetchingNext={false}
         removeLink={async () => undefined}
         restoreDeleted={async () => undefined}
         permanentlyDelete={async () => undefined}
         isPending={false}
+        loadMoreRef={loadMoreRef}
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Load more' }));
-    expect(fetchCount).toBe(1);
+    const table = screen.getByRole('table', { name: 'The list of links.' });
+    expect(table.parentElement?.parentElement?.lastElementChild).toBeInTheDocument();
+    expect(screen.queryByRole('status', { name: 'Loading' })).not.toBeInTheDocument();
+  });
+
+  it('shows a spinner in the sentinel while fetching the next page', () => {
+    render(
+      <LinkTableComp
+        data={[activeLink]}
+        hasNext
+        isFetching={false}
+        isFetchingNext
+        removeLink={async () => undefined}
+        restoreDeleted={async () => undefined}
+        permanentlyDelete={async () => undefined}
+        isPending={false}
+        loadMoreRef={loadMoreRef}
+      />,
+    );
+
+    expect(screen.getByRole('status', { name: 'Loading' })).toBeInTheDocument();
   });
 });

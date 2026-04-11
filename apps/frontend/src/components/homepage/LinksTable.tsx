@@ -25,8 +25,9 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import type { LinkRes } from '@/schemas/schemas';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { useState, type Dispatch } from 'react';
 import { toast } from 'sonner';
+import useInfiniteScroll from '@/hooks/useInfiniteScroll';
 
 interface LinkRowCompProps {
   link: LinkRes;
@@ -157,25 +158,25 @@ export const LinkRowComp = ({
 interface LinkTableCompProps {
   data: LinkRes[] | undefined;
   hasNext: boolean;
-  fetchNext: () => void;
   isFetching: boolean;
   isFetchingNext: boolean;
   removeLink: (code: string) => Promise<void>;
   restoreDeleted: (code: string) => Promise<void>;
   permanentlyDelete: (code: string) => Promise<void>;
   isPending: boolean;
+  loadMoreRef: Dispatch<React.SetStateAction<HTMLDivElement | null>>;
 }
 
 export const LinkTableComp = ({
   data,
   hasNext,
-  fetchNext,
   isFetching,
   isFetchingNext,
   removeLink,
   restoreDeleted,
   permanentlyDelete,
   isPending,
+  loadMoreRef,
 }: LinkTableCompProps) => (
   <section className='flex flex-col gap-4'>
     <h2 className='text-base font-medium tracking-tight'>Links</h2>
@@ -210,15 +211,12 @@ export const LinkTableComp = ({
         </div>
       )}
     </div>
+
+    {/* Load more */}
     {hasNext && (
-      <Button
-        onClick={() => void fetchNext()}
-        disabled={isFetchingNext}
-        variant='outline'
-        className='w-full'
-      >
-        {isFetchingNext ? <Spinner /> : 'Load more'}
-      </Button>
+      <div ref={loadMoreRef} className='flex w-full min-h-10 items-center justify-center'>
+        {isFetchingNext && <Spinner />}
+      </div>
     )}
   </section>
 );
@@ -226,18 +224,19 @@ export const LinkTableComp = ({
 const LinksTable = () => {
   const { data, hasNext, fetchNext, isFetching, isFetchingNext } = useLinks();
   const { removeLink, restoreDeleted, permanentlyDelete, isPending } = useMutateLink();
+  const loadMoreRef = useInfiniteScroll(hasNext, isFetchingNext, fetchNext);
 
   return (
     <LinkTableComp
       data={data}
       hasNext={hasNext}
-      fetchNext={fetchNext}
       isFetching={isFetching}
       isFetchingNext={isFetchingNext}
       removeLink={removeLink}
       restoreDeleted={restoreDeleted}
       permanentlyDelete={permanentlyDelete}
       isPending={isPending}
+      loadMoreRef={loadMoreRef}
     />
   );
 };
