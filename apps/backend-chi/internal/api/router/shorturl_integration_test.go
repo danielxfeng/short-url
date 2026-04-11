@@ -780,6 +780,20 @@ func TestShortURLRouter_CreateValidationError(t *testing.T) {
 	}
 }
 
+func TestShortURLRouter_CreateInvalidCustomCodeReturnsBadRequest(t *testing.T) {
+	d, q, token := newShortURLIntegrationSetup(t, 42)
+	h := ShortURLRouter(d, newShortURLTestRepo(q))
+	_ = seedUser(t, q, "invalid-code-user")
+
+	badBody := []byte(`{"original_url":"https://example.com/custom","code":"bad_code"}`)
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, authedReq(http.MethodPost, "/", token, badBody))
+
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("expected %d, got %d", http.StatusBadRequest, rr.Code)
+	}
+}
+
 func TestShortURLRouter_CreateMalformedJSONError(t *testing.T) {
 	d, q, token := newShortURLIntegrationSetup(t, 42)
 	h := ShortURLRouter(d, newShortURLTestRepo(q))

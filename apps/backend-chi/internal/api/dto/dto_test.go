@@ -14,6 +14,9 @@ func newValidatorWithTrim(t *testing.T) *validator.Validate {
 	if err := v.RegisterValidation("trim", trimValue); err != nil {
 		t.Fatalf("register trim validation: %v", err)
 	}
+	if err := v.RegisterValidation("shortcode", shortCodeValue); err != nil {
+		t.Fatalf("register shortcode validation: %v", err)
+	}
 
 	return v
 }
@@ -368,6 +371,22 @@ func TestCreateLinkReqValidation(t *testing.T) {
 			wantPass: true,
 		},
 		{
+			name: "code accepts alphanumeric only",
+			in: CreateLinkReq{
+				OriginalUrl: "https://example.com",
+				Code:        strPtr("abc123"),
+			},
+			wantPass: true,
+		},
+		{
+			name: "code accepts dash",
+			in: CreateLinkReq{
+				OriginalUrl: "https://example.com",
+				Code:        strPtr("abc-123"),
+			},
+			wantPass: true,
+		},
+		{
 			name: "empty code fails",
 			in: CreateLinkReq{
 				OriginalUrl: "https://example.com",
@@ -388,6 +407,30 @@ func TestCreateLinkReqValidation(t *testing.T) {
 			in: CreateLinkReq{
 				OriginalUrl: "https://example.com",
 				Code:        strPtr("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuv"),
+			},
+			wantPass: false,
+		},
+		{
+			name: "code rejects underscore",
+			in: CreateLinkReq{
+				OriginalUrl: "https://example.com",
+				Code:        strPtr("custom_code"),
+			},
+			wantPass: false,
+		},
+		{
+			name: "code rejects slash",
+			in: CreateLinkReq{
+				OriginalUrl: "https://example.com",
+				Code:        strPtr("custom/code"),
+			},
+			wantPass: false,
+		},
+		{
+			name: "code rejects space inside value",
+			in: CreateLinkReq{
+				OriginalUrl: "https://example.com",
+				Code:        strPtr("custom code"),
 			},
 			wantPass: false,
 		},
