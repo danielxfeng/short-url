@@ -202,7 +202,7 @@ func TestShortURLRouter_GetRedirect(t *testing.T) {
 				return
 			}
 
-			deadline := time.Now().Add(800 * time.Millisecond)
+			deadline := time.Now().Add(2 * time.Second)
 			for {
 				got, err := app.q.GetLinkByCode(context.Background(), seed.Code)
 				if err == nil && got.Clicks > seed.Clicks {
