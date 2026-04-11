@@ -25,8 +25,9 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import type { LinkRes } from '@/schemas/schemas';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { useState, type Dispatch } from 'react';
 import { toast } from 'sonner';
+import useInfiniteScroll from '@/hooks/useInfiniteScroll';
 
 interface LinkRowCompProps {
   link: LinkRes;
@@ -67,6 +68,7 @@ export const LinkRowComp = ({
   return (
     <>
       <TableRow onClick={() => setShowDeleteBtn((prev) => !prev)} className='cursor-pointer'>
+        {/* Code */}
         <TableCell
           className={cn('text-center', link.is_deleted && 'line-through text-muted-foreground')}
         >
@@ -79,21 +81,31 @@ export const LinkRowComp = ({
             {link.code}
           </a>
         </TableCell>
+
+        {/* Original URL */}
         <TableCell className={link.is_deleted ? 'line-through text-muted-foreground' : undefined}>
           {link.original_url}
         </TableCell>
+
+        {/* Clicks */}
         <TableCell
           className={cn('text-center', link.is_deleted && 'line-through text-muted-foreground')}
         >
           {link.clicks}
         </TableCell>
       </TableRow>
+
+      {/* Delete button row */}
       {showDeleteBtn && (
         <TableRow>
           <TableCell colSpan={3} className='text-center'>
             <div className='flex items-center justify-center gap-4'>
+              {/* Delete/Restore button */}
               <Button
-                onClick={() => void operationHandler(link.is_deleted ? 'restore' : 'remove')}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  void operationHandler(link.is_deleted ? 'restore' : 'remove');
+                }}
                 disabled={isPending}
                 variant={link.is_deleted ? 'outline' : 'destructive'}
                 size='xs'
@@ -101,10 +113,16 @@ export const LinkRowComp = ({
                 {isPending ? <Spinner /> : link.is_deleted ? 'Restore' : 'Delete'}
               </Button>
 
+              {/* Permanently delete button, only show when the link is already soft deleted */}
               {link.is_deleted && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant='destructive' size='xs'>
+                    <Button
+                      variant='destructive'
+                      size='xs'
+                      onClick={(e) => void e.stopPropagation()}
+                      disabled={isPending}
+                    >
                       {isPending ? <Spinner /> : 'Permanently Delete'}
                     </Button>
                   </AlertDialogTrigger>
@@ -140,36 +158,36 @@ export const LinkRowComp = ({
 interface LinkTableCompProps {
   data: LinkRes[] | undefined;
   hasNext: boolean;
-  fetchNext: () => void;
   isFetching: boolean;
   isFetchingNext: boolean;
   removeLink: (code: string) => Promise<void>;
   restoreDeleted: (code: string) => Promise<void>;
   permanentlyDelete: (code: string) => Promise<void>;
   isPending: boolean;
+  loadMoreRef: Dispatch<React.SetStateAction<HTMLDivElement | null>>;
 }
 
 export const LinkTableComp = ({
   data,
   hasNext,
-  fetchNext,
   isFetching,
   isFetchingNext,
   removeLink,
   restoreDeleted,
   permanentlyDelete,
   isPending,
+  loadMoreRef,
 }: LinkTableCompProps) => (
-  <section>
-    <h2 className='font-medium text-base mb-3'>Links</h2>
-    <div className='border rounded-2xl p-2'>
+  <section className='flex flex-col gap-4'>
+    <h2 className='text-base font-medium tracking-tight'>Links</h2>
+    <div className='border rounded-2xl p-2 bg-background'>
       <Table className='table-fixed'>
         <TableCaption className='sr-only'>The list of links.</TableCaption>
         <TableHeader>
           <TableRow>
             <TableHead className='w-20 text-center'>Code</TableHead>
-            <TableHead className='text-center'>Url</TableHead>
-            <TableHead className='w-20 text-center'>Visited</TableHead>
+            <TableHead className='text-center'>URL</TableHead>
+            <TableHead className='w-20 text-center'>Clicks</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -185,21 +203,20 @@ export const LinkTableComp = ({
           ))}
         </TableBody>
       </Table>
+
+      {/* Spinner for initial fetch */}
       {isFetching && !data?.length && (
         <div className='flex justify-center py-4'>
           <Spinner />
         </div>
       )}
     </div>
+
+    {/* Load more */}
     {hasNext && (
-      <Button
-        onClick={() => void fetchNext()}
-        disabled={isFetchingNext}
-        variant='outline'
-        className='w-full'
-      >
-        {isFetchingNext ? <Spinner /> : 'Load more'}
-      </Button>
+      <div ref={loadMoreRef} className='flex w-full min-h-10 items-center justify-center'>
+        {isFetchingNext && <Spinner />}
+      </div>
     )}
   </section>
 );
@@ -207,18 +224,19 @@ export const LinkTableComp = ({
 const LinksTable = () => {
   const { data, hasNext, fetchNext, isFetching, isFetchingNext } = useLinks();
   const { removeLink, restoreDeleted, permanentlyDelete, isPending } = useMutateLink();
+  const loadMoreRef = useInfiniteScroll(hasNext, isFetchingNext, fetchNext);
 
   return (
     <LinkTableComp
       data={data}
       hasNext={hasNext}
-      fetchNext={fetchNext}
       isFetching={isFetching}
       isFetchingNext={isFetchingNext}
       removeLink={removeLink}
       restoreDeleted={restoreDeleted}
       permanentlyDelete={permanentlyDelete}
       isPending={isPending}
+      loadMoreRef={loadMoreRef}
     />
   );
 };

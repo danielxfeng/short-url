@@ -1,9 +1,11 @@
-import { CreateLinkReqSchema } from '@/schemas/schemas';
+import { CreateLinkReqSchema, type LinkRes } from '@/schemas/schemas';
 import { useForm } from '@tanstack/react-form';
 import useMutateLink from './useMutateLink';
 import { toast } from 'sonner';
+import { useState } from 'react';
 
 const useAddLinkForm = () => {
+  const [addedLink, setAddedLink] = useState<LinkRes | undefined | null>(null);
   const mutation = useMutateLink();
 
   const form = useForm({
@@ -18,7 +20,8 @@ const useAddLinkForm = () => {
       // ref: https://www.answeroverflow.com/m/1192055132851032125
       onSubmitAsync: async ({ value }) => {
         try {
-          await mutation.addLink(value.original_url);
+          const result = await mutation.addLink(value.original_url);
+          setAddedLink(result);
         } catch {
           return {
             fields: {
@@ -37,6 +40,7 @@ const useAddLinkForm = () => {
   return {
     form,
     isPending: mutation.isPending,
+    addedLink,
   };
 };
 

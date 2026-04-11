@@ -10,7 +10,7 @@ describe('Header', () => {
       </MemoryRouter>,
     );
 
-    const link = screen.getByRole('link', { name: 'Short URL' });
+    const link = screen.getByRole('link', { name: 'shorturl' });
     expect(link).toBeInTheDocument();
     expect(link).toHaveAttribute('href', '/');
   });

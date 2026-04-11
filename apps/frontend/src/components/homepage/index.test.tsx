@@ -18,7 +18,7 @@ describe('HomePage', () => {
   it('renders the page heading and supporting text', () => {
     render(<HomePage />);
 
-    expect(screen.getByRole('heading', { name: 'URL Shortener' })).toBeInTheDocument();
-    expect(screen.getByText('Create and manage your short URLs')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Short links' })).toBeInTheDocument();
+    expect(screen.getByText('Create, manage, restore, and remove links.')).toBeInTheDocument();
   });
 });

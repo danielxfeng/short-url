@@ -41,7 +41,7 @@ const useMutateLink = () => {
   });
 
   const addLink = async (url: string) => {
-    await mutation.mutateAsync({ urlOrCode: url, method: 'create' });
+    return await mutation.mutateAsync({ urlOrCode: url, method: 'create' });
   };
 
   const removeLink = async (code: string) => {

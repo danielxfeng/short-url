@@ -38,7 +38,7 @@ describe('ProfileComp', () => {
     const deleteItem = await screen.findByRole('menuitem', { name: 'Delete Account' });
     fireEvent.click(deleteItem);
 
-    const confirmDeleteButton = await screen.findByRole('button', { name: 'Delete' });
+    const confirmDeleteButton = await screen.findByRole('button', { name: 'Delete account' });
     fireEvent.click(confirmDeleteButton);
 
     expect(handleLogout).toHaveBeenCalledTimes(1);
