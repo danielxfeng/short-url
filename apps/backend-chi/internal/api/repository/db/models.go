@@ -60,6 +60,7 @@ type Link struct {
 	Clicks      int32
 	CreatedAt   time.Time
 	DeletedAt   *time.Time
+	Note        *string
 }
 
 type User struct {

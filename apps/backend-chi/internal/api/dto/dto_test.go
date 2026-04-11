@@ -329,6 +329,116 @@ func TestCreateLinkReqValidation(t *testing.T) {
 			},
 			wantPass: false,
 		},
+		{
+			name: "note can be omitted",
+			in: CreateLinkReq{
+				OriginalUrl: "https://example.com",
+			},
+			wantPass: true,
+		},
+		{
+			name: "code can be omitted",
+			in: CreateLinkReq{
+				OriginalUrl: "https://example.com",
+			},
+			wantPass: true,
+		},
+		{
+			name: "code can be null",
+			in: CreateLinkReq{
+				OriginalUrl: "https://example.com",
+				Code:        nil,
+			},
+			wantPass: true,
+		},
+		{
+			name: "code accepts non-empty value",
+			in: CreateLinkReq{
+				OriginalUrl: "https://example.com",
+				Code:        strPtr("custom-code"),
+			},
+			wantPass: true,
+		},
+		{
+			name: "code trims surrounding spaces",
+			in: CreateLinkReq{
+				OriginalUrl: "https://example.com",
+				Code:        strPtr("  custom-code  "),
+			},
+			wantPass: true,
+		},
+		{
+			name: "empty code fails",
+			in: CreateLinkReq{
+				OriginalUrl: "https://example.com",
+				Code:        strPtr(""),
+			},
+			wantPass: false,
+		},
+		{
+			name: "spaces only code fails after trim",
+			in: CreateLinkReq{
+				OriginalUrl: "https://example.com",
+				Code:        strPtr("   "),
+			},
+			wantPass: false,
+		},
+		{
+			name: "code max length applied",
+			in: CreateLinkReq{
+				OriginalUrl: "https://example.com",
+				Code:        strPtr("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuv"),
+			},
+			wantPass: false,
+		},
+		{
+			name: "note can be null",
+			in: CreateLinkReq{
+				OriginalUrl: "https://example.com",
+				Note:        nil,
+			},
+			wantPass: true,
+		},
+		{
+			name: "note accepts non-empty value",
+			in: CreateLinkReq{
+				OriginalUrl: "https://example.com",
+				Note:        strPtr("hello"),
+			},
+			wantPass: true,
+		},
+		{
+			name: "note trims surrounding spaces",
+			in: CreateLinkReq{
+				OriginalUrl: "https://example.com",
+				Note:        strPtr("  hello  "),
+			},
+			wantPass: true,
+		},
+		{
+			name: "empty note fails",
+			in: CreateLinkReq{
+				OriginalUrl: "https://example.com",
+				Note:        strPtr(""),
+			},
+			wantPass: false,
+		},
+		{
+			name: "spaces only note fails after trim",
+			in: CreateLinkReq{
+				OriginalUrl: "https://example.com",
+				Note:        strPtr("   "),
+			},
+			wantPass: false,
+		},
+		{
+			name: "note max length applied",
+			in: CreateLinkReq{
+				OriginalUrl: "https://example.com",
+				Note:        strPtr("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuv"),
+			},
+			wantPass: false,
+		},
 	}
 
 	for _, tc := range testCases {

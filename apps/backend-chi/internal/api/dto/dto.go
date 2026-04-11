@@ -71,13 +71,16 @@ type UserWithTokenResponse struct {
 }
 
 type CreateLinkReq struct {
-	OriginalUrl string `json:"original_url" validate:"required,trim,url"`
+	OriginalUrl string  `json:"original_url" validate:"required,trim,url"`
+	Code        *string `json:"code,omitempty" validate:"omitempty,trim,min=1,max=255"`
+	Note        *string `json:"note,omitempty" validate:"omitempty,trim,min=1,max=255"`
 }
 
 type LinkResponse struct {
 	ID          int32     `json:"id"`
 	Code        string    `json:"code"`
 	OriginalUrl string    `json:"original_url"`
+	Note        *string   `json:"note,omitempty"`
 	Clicks      int32     `json:"clicks"`
 	CreatedAt   time.Time `json:"created_at"`
 	IsDeleted   bool      `json:"is_deleted"`

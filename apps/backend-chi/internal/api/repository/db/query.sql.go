@@ -11,21 +11,27 @@ import (
 
 const createLink = `-- name: CreateLink :one
 INSERT INTO links (
-  user_id, code, original_url
+  user_id, code, original_url, note
 ) VALUES (
-  $1, $2, $3
+  $1, $2, $3, $4
 )
-RETURNING id, user_id, code, original_url, clicks, created_at, deleted_at
+RETURNING id, user_id, code, original_url, clicks, created_at, deleted_at, note
 `
 
 type CreateLinkParams struct {
 	UserID      int32
 	Code        string
 	OriginalUrl string
+	Note        *string
 }
 
 func (q *Queries) CreateLink(ctx context.Context, arg CreateLinkParams) (Link, error) {
-	row := q.db.QueryRow(ctx, createLink, arg.UserID, arg.Code, arg.OriginalUrl)
+	row := q.db.QueryRow(ctx, createLink,
+		arg.UserID,
+		arg.Code,
+		arg.OriginalUrl,
+		arg.Note,
+	)
 	var i Link
 	err := row.Scan(
 		&i.ID,
@@ -35,6 +41,7 @@ func (q *Queries) CreateLink(ctx context.Context, arg CreateLinkParams) (Link, e
 		&i.Clicks,
 		&i.CreatedAt,
 		&i.DeletedAt,
+		&i.Note,
 	)
 	return i, err
 }
@@ -60,7 +67,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id int32) (User, error) {
 }
 
 const getLinkByCode = `-- name: GetLinkByCode :one
-SELECT id, user_id, code, original_url, clicks, created_at, deleted_at FROM links
+SELECT id, user_id, code, original_url, clicks, created_at, deleted_at, note FROM links
 WHERE code = $1 AND deleted_at IS NULL
 `
 
@@ -75,12 +82,13 @@ func (q *Queries) GetLinkByCode(ctx context.Context, code string) (Link, error) 
 		&i.Clicks,
 		&i.CreatedAt,
 		&i.DeletedAt,
+		&i.Note,
 	)
 	return i, err
 }
 
 const getLinkByCodeWithDeleted = `-- name: GetLinkByCodeWithDeleted :one
-SELECT id, user_id, code, original_url, clicks, created_at, deleted_at FROM links
+SELECT id, user_id, code, original_url, clicks, created_at, deleted_at, note FROM links
 WHERE code = $1
 `
 
@@ -95,12 +103,13 @@ func (q *Queries) GetLinkByCodeWithDeleted(ctx context.Context, code string) (Li
 		&i.Clicks,
 		&i.CreatedAt,
 		&i.DeletedAt,
+		&i.Note,
 	)
 	return i, err
 }
 
 const getLinksByUserID = `-- name: GetLinksByUserID :many
-SELECT id, user_id, code, original_url, clicks, created_at, deleted_at FROM links
+SELECT id, user_id, code, original_url, clicks, created_at, deleted_at, note FROM links
 WHERE user_id = $1 AND id < $2
 ORDER BY id DESC
 LIMIT $3
@@ -129,6 +138,7 @@ func (q *Queries) GetLinksByUserID(ctx context.Context, arg GetLinksByUserIDPara
 			&i.Clicks,
 			&i.CreatedAt,
 			&i.DeletedAt,
+			&i.Note,
 		); err != nil {
 			return nil, err
 		}

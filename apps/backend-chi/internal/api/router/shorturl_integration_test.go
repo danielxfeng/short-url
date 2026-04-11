@@ -570,6 +570,9 @@ func TestShortURLRouter_CreateAndDelete(t *testing.T) {
 	if created.OriginalUrl != "https://example.com/new" {
 		t.Fatalf("expected original_url to match request, got %q", created.OriginalUrl)
 	}
+	if created.Note != nil {
+		t.Fatalf("expected note to be omitted when not provided, got %v", created.Note)
+	}
 	if created.Clicks != 0 {
 		t.Fatalf("expected clicks to be 0, got %d", created.Clicks)
 	}
@@ -663,6 +666,74 @@ func TestShortURLRouter_CreateAndDelete(t *testing.T) {
 	h.ServeHTTP(rr, authedReq(http.MethodDelete, "/"+created.Code+"/permanent", tokenForUser, nil))
 	if rr.Code != http.StatusNotFound {
 		t.Fatalf("expected %d, got %d", http.StatusNotFound, rr.Code)
+	}
+}
+
+func TestShortURLRouter_CreateCustomCodeAndNote(t *testing.T) {
+	d, q, _ := newShortURLIntegrationSetup(t, 42)
+	h := ShortURLRouter(d, newShortURLTestRepo(q))
+	u := seedUser(t, q, "create-custom-user")
+	tokenForUser, err := auth.GenerateToken(u.ID, d.Cfg.JWTSecret, d.Cfg.JWTExpiry)
+	if err != nil {
+		t.Fatalf("generate token: %v", err)
+	}
+
+	createBody := []byte(`{"original_url":"https://example.com/custom","code":"my-code","note":"hello note"}`)
+	createRR := httptest.NewRecorder()
+	h.ServeHTTP(createRR, authedReq(http.MethodPost, "/", tokenForUser, createBody))
+
+	if createRR.Code != http.StatusCreated {
+		t.Fatalf("expected %d, got %d", http.StatusCreated, createRR.Code)
+	}
+
+	var created dto.LinkResponse
+	if err := json.NewDecoder(createRR.Body).Decode(&created); err != nil {
+		t.Fatalf("decode created response: %v", err)
+	}
+	if created.Code != "my-code" {
+		t.Fatalf("expected custom code to be used, got %q", created.Code)
+	}
+	if created.Note == nil || *created.Note != "hello note" {
+		t.Fatalf("expected note to round-trip, got %v", created.Note)
+	}
+
+	stored, err := q.GetLinkByCode(context.Background(), "my-code")
+	if err != nil {
+		t.Fatalf("expected created link to exist, got err=%v", err)
+	}
+	if stored.Code != "my-code" {
+		t.Fatalf("expected stored custom code, got %q", stored.Code)
+	}
+	if stored.Note == nil || *stored.Note != "hello note" {
+		t.Fatalf("expected stored note to match, got %v", stored.Note)
+	}
+}
+
+func TestShortURLRouter_CreateDuplicateCustomCodeReturnsConflict(t *testing.T) {
+	d, q, _ := newShortURLIntegrationSetup(t, 42)
+	h := ShortURLRouter(d, newShortURLTestRepo(q))
+	u := seedUser(t, q, "create-duplicate-user")
+	seedLink(t, q, u.ID, "taken-code")
+
+	tokenForUser, err := auth.GenerateToken(u.ID, d.Cfg.JWTSecret, d.Cfg.JWTExpiry)
+	if err != nil {
+		t.Fatalf("generate token: %v", err)
+	}
+
+	createBody := []byte(`{"original_url":"https://example.com/custom","code":"taken-code"}`)
+	createRR := httptest.NewRecorder()
+	h.ServeHTTP(createRR, authedReq(http.MethodPost, "/", tokenForUser, createBody))
+
+	if createRR.Code != http.StatusConflict {
+		t.Fatalf("expected %d, got %d", http.StatusConflict, createRR.Code)
+	}
+
+	var apiErr dto.APIErrorRes
+	if err := json.NewDecoder(createRR.Body).Decode(&apiErr); err != nil {
+		t.Fatalf("decode error response: %v", err)
+	}
+	if apiErr.Error == "" {
+		t.Fatalf("expected non-empty error message")
 	}
 }
 
