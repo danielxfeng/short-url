@@ -67,6 +67,7 @@ export const LinkRowComp = ({
   return (
     <>
       <TableRow onClick={() => setShowDeleteBtn((prev) => !prev)} className='cursor-pointer'>
+        {/* Code */}
         <TableCell
           className={cn('text-center', link.is_deleted && 'line-through text-muted-foreground')}
         >
@@ -79,19 +80,26 @@ export const LinkRowComp = ({
             {link.code}
           </a>
         </TableCell>
+
+        {/* Original URL */}
         <TableCell className={link.is_deleted ? 'line-through text-muted-foreground' : undefined}>
           {link.original_url}
         </TableCell>
+
+        {/* Clicks */}
         <TableCell
           className={cn('text-center', link.is_deleted && 'line-through text-muted-foreground')}
         >
           {link.clicks}
         </TableCell>
       </TableRow>
+
+      {/* Delete button row */}
       {showDeleteBtn && (
         <TableRow>
           <TableCell colSpan={3} className='text-center'>
             <div className='flex items-center justify-center gap-4'>
+              {/* Delete/Restore button */}
               <Button
                 onClick={() => void operationHandler(link.is_deleted ? 'restore' : 'remove')}
                 disabled={isPending}
@@ -101,6 +109,7 @@ export const LinkRowComp = ({
                 {isPending ? <Spinner /> : link.is_deleted ? 'Restore' : 'Delete'}
               </Button>
 
+              {/* Permanently delete button, only show when the link is already soft deleted */}
               {link.is_deleted && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
@@ -185,6 +194,8 @@ export const LinkTableComp = ({
           ))}
         </TableBody>
       </Table>
+
+      {/* Spinner for initial fetch */}
       {isFetching && !data?.length && (
         <div className='flex justify-center py-4'>
           <Spinner />

@@ -76,6 +76,7 @@ export const CreateLinkFormComp = ({
               );
             }}
           />
+
           <Button
             type='submit'
             form='new-link-form'
@@ -85,6 +86,8 @@ export const CreateLinkFormComp = ({
           </Button>
         </form>
       </CardContent>
+
+      {/* Added link block */}
       {addedLink && (
         <CardFooter className='border-t'>
           <div className='flex w-full items-center justify-between gap-4 rounded-lg border bg-muted/40 p-3'>
