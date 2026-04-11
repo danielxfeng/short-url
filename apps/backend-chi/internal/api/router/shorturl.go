@@ -154,6 +154,30 @@ func ShortURLRouter(dep *dep.Dep, repo models.Repository) http.Handler {
 			util.SendJSON(w, http.StatusCreated, LinkToDTO(link))
 		})
 
+		r.Put("/{code}/restore", func(w http.ResponseWriter, r *http.Request) {
+			userID := mymiddleware.MustUserIDFromContext(r.Context())
+
+			code := chi.URLParam(r, "code")
+			if code == "" {
+				util.SendError(w, apierror.NewApiError(400, "code is required", nil))
+				return
+			}
+
+			_, err := repo.Link.SetLinkRestored(r.Context(), models.SetLinkRestoredParams{
+				Code:   code,
+				UserID: userID,
+			})
+			if err != nil {
+				if errors.Is(err, pgx.ErrNoRows) {
+					util.SendError(w, apierror.NewApiError(404, "link not found", nil))
+					return
+				}
+				panic(err)
+			}
+
+			w.WriteHeader(http.StatusNoContent)
+		})
+
 		r.Delete("/{code}", func(w http.ResponseWriter, r *http.Request) {
 			userID := mymiddleware.MustUserIDFromContext(r.Context())
 

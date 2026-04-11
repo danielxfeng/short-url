@@ -201,6 +201,25 @@ func (q *Queries) SetLinkDeleted(ctx context.Context, arg SetLinkDeletedParams) 
 	return id, err
 }
 
+const setLinkRestored = `-- name: SetLinkRestored :one
+UPDATE links
+SET deleted_at = NULL
+WHERE code = $1 AND user_id = $2 AND deleted_at IS NOT NULL
+RETURNING id
+`
+
+type SetLinkRestoredParams struct {
+	Code   string
+	UserID int32
+}
+
+func (q *Queries) SetLinkRestored(ctx context.Context, arg SetLinkRestoredParams) (int32, error) {
+	row := q.db.QueryRow(ctx, setLinkRestored, arg.Code, arg.UserID)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
+}
+
 const upsertUser = `-- name: UpsertUser :one
 INSERT INTO users (
   provider, provider_id, display_name, profile_pic

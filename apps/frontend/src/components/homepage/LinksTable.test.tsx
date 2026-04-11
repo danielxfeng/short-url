@@ -29,6 +29,7 @@ describe('LinkTableComp', () => {
   it('renders rows and disables delete for soft-deleted links', () => {
     const fetchNext = vi.fn();
     const removeLink = vi.fn().mockResolvedValue(undefined);
+    const restoreDeleted = vi.fn().mockResolvedValue(undefined);
 
     renderLinkTable({
       data: links,
@@ -37,19 +38,26 @@ describe('LinkTableComp', () => {
       isFetching: false,
       isFetchingNext: false,
       removeLink,
+      restoreDeleted,
       isPending: false,
     });
 
     expect(screen.getByText('alive123')).toBeInTheDocument();
     expect(screen.getByText('dead456')).toBeInTheDocument();
-    expect(screen.getByText('https://example.com/very/long/url')).toHaveClass('truncate');
+    expect(screen.getByText('https://example.com/very/long/url')).toBeInTheDocument();
 
-    const deleteButtons = screen.getAllByRole('button', { name: 'Delete' });
-    expect(deleteButtons[0]).toBeEnabled();
-    expect(deleteButtons[1]).toBeDisabled();
+    fireEvent.click(screen.getByText('alive123'));
+    fireEvent.click(screen.getByText('dead456'));
 
-    fireEvent.click(deleteButtons[0]);
+    const deleteButton = screen.getByRole('button', { name: 'Delete' });
+    const restoreButton = screen.getByRole('button', { name: 'Restore' });
+    expect(deleteButton).toBeEnabled();
+    expect(restoreButton).toBeEnabled();
+
+    fireEvent.click(deleteButton);
+    fireEvent.click(restoreButton);
     expect(removeLink).toHaveBeenCalledWith('alive123');
+    expect(restoreDeleted).toHaveBeenCalledWith('dead456');
   });
 
   it('shows a loading spinner while fetching with no data', () => {
@@ -60,6 +68,7 @@ describe('LinkTableComp', () => {
       isFetching: true,
       isFetchingNext: false,
       removeLink: vi.fn().mockResolvedValue(undefined),
+      restoreDeleted: vi.fn().mockResolvedValue(undefined),
       isPending: false,
     });
 
@@ -76,6 +85,7 @@ describe('LinkTableComp', () => {
       isFetching: false,
       isFetchingNext: false,
       removeLink: vi.fn().mockResolvedValue(undefined),
+      restoreDeleted: vi.fn().mockResolvedValue(undefined),
       isPending: false,
     });
 

@@ -1,11 +1,11 @@
-import { createLink, deleteLink } from '@/services';
+import { createLink, deleteLink, restoreLink } from '@/services';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { linksQueryOptions } from './useLinks';
 import logger from '@/lib/logger';
 
 interface LinkMutationInput {
   urlOrCode: string;
-  method: 'create' | 'delete';
+  method: 'create' | 'delete' | 'restore';
 }
 
 const useMutateLink = () => {
@@ -16,7 +16,16 @@ const useMutateLink = () => {
 
     if (!trimmed) throw new Error('URL is required');
 
-    return method === 'create' ? createLink(trimmed) : deleteLink(trimmed);
+    switch (method) {
+      case 'create':
+        return createLink(trimmed);
+      case 'delete':
+        return deleteLink(trimmed);
+      case 'restore':
+        return restoreLink(trimmed);
+      default:
+        throw new Error('Invalid method');
+    }
   };
 
   const mutation = useMutation({
@@ -37,6 +46,10 @@ const useMutateLink = () => {
     await mutation.mutateAsync({ urlOrCode: code, method: 'delete' });
   };
 
+  const restoreDeleted = async (code: string) => {
+    await mutation.mutateAsync({ urlOrCode: code, method: 'restore' });
+  };
+
   const clearLinks = () => {
     queryClient.removeQueries({ queryKey: linksQueryOptions().queryKey });
   };
@@ -44,6 +57,7 @@ const useMutateLink = () => {
   return {
     addLink,
     removeLink,
+    restoreDeleted,
     clearLinks,
     isPending: mutation.isPending,
   };

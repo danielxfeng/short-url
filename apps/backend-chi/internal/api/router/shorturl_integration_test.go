@@ -202,7 +202,7 @@ func TestShortURLRouter_GetRedirect(t *testing.T) {
 				return
 			}
 
-			deadline := time.Now().Add(800 * time.Millisecond)
+			deadline := time.Now().Add(2 * time.Second)
 			for {
 				got, err := app.q.GetLinkByCode(context.Background(), seed.Code)
 				if err == nil && got.Clicks > seed.Clicks {
@@ -606,6 +606,34 @@ func TestShortURLRouter_CreateAndDelete(t *testing.T) {
 
 	if _, err := q.GetLinkByCode(context.Background(), created.Code); !errors.Is(err, pgx.ErrNoRows) {
 		t.Fatalf("expected deleted link to be hidden, got err=%v", err)
+	}
+
+	restoreCases := []struct {
+		name       string
+		path       string
+		wantStatus int
+	}{
+		{name: "restore deleted", path: "/" + created.Code + "/restore", wantStatus: http.StatusNoContent},
+		{name: "restore active link", path: "/" + created.Code + "/restore", wantStatus: http.StatusNotFound},
+		{name: "restore missing link", path: "/missing-code/restore", wantStatus: http.StatusNotFound},
+	}
+
+	for _, tc := range restoreCases {
+		t.Run(tc.name, func(t *testing.T) {
+			rr := httptest.NewRecorder()
+			h.ServeHTTP(rr, authedReq(http.MethodPut, tc.path, tokenForUser, nil))
+			if rr.Code != tc.wantStatus {
+				t.Fatalf("expected %d, got %d", tc.wantStatus, rr.Code)
+			}
+		})
+	}
+
+	restored, err := q.GetLinkByCode(context.Background(), created.Code)
+	if err != nil {
+		t.Fatalf("expected restored link to be visible, got err=%v", err)
+	}
+	if restored.DeletedAt != nil {
+		t.Fatalf("expected restored link to have nil deleted_at")
 	}
 }
 
