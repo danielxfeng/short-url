@@ -45,6 +45,12 @@ SET deleted_at = now()
 WHERE code = $1 AND user_id = $2 AND deleted_at IS NULL
 RETURNING id;
 
+-- name: SetLinkRestored :one
+UPDATE links
+SET deleted_at = NULL
+WHERE code = $1 AND user_id = $2 AND deleted_at IS NOT NULL
+RETURNING id;
+
 -- name: SetLinkClicked :one
 UPDATE links
 SET clicks = clicks + 1
