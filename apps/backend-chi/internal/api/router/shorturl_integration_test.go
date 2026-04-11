@@ -19,6 +19,7 @@ import (
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/dto"
 	db "github.com/danielxfeng/short-url/apps/backend-chi/internal/api/repository/db"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/repository/models"
+	"github.com/danielxfeng/short-url/apps/backend-chi/internal/api/util"
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/dep"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -183,8 +184,8 @@ func TestShortURLRouter_GetRedirect(t *testing.T) {
 		verifyClicked bool
 	}{
 		{name: "existing code redirects to original url", path: "/" + seed.Code, wantLocation: seed.OriginalUrl, verifyClicked: true},
-		{name: "soft deleted code redirects to not found page", path: "/" + deleted.Code, wantLocation: app.dep.Cfg.NotFoundPage},
-		{name: "missing code redirects to not found page", path: "/missing", wantLocation: app.dep.Cfg.NotFoundPage},
+		{name: "soft deleted code redirects to not found page", path: "/" + deleted.Code, wantLocation: util.AssembleURL(app.dep.Cfg.NotFoundPage, "invalid-url", deleted.Code)},
+		{name: "missing code redirects to not found page", path: "/missing", wantLocation: util.AssembleURL(app.dep.Cfg.NotFoundPage, "invalid-url", "missing")},
 	}
 
 	for _, tc := range testCases {
