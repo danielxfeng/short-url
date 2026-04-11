@@ -18,9 +18,7 @@ describe('HomePage', () => {
   it('renders the page heading and supporting text', () => {
     render(<HomePage />);
 
-    expect(
-      screen.getByRole('heading', { name: 'Welcome to the Short URL Service' }),
-    ).toBeInTheDocument();
-    expect(screen.getByText('Create and manage your short URLs with ease.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'URL Shortener' })).toBeInTheDocument();
+    expect(screen.getByText('Create and manage your short URLs')).toBeInTheDocument();
   });
 });
