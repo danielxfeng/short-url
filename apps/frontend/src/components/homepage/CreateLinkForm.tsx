@@ -25,7 +25,7 @@ interface CreateLinkFormCompProps {
 export const CreateLinkFormComp = ({ form, isPending }: CreateLinkFormCompProps) => (
   <Card className='w-full'>
     <CardHeader>
-      <CardTitle>Add a new link</CardTitle>
+      <CardTitle>Add a link</CardTitle>
     </CardHeader>
     <CardContent>
       <form

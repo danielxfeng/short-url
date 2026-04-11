@@ -168,7 +168,7 @@ export const LinkTableComp = ({
         <TableHeader>
           <TableRow>
             <TableHead className='w-20 text-center'>Code</TableHead>
-            <TableHead className='text-center'>Url</TableHead>
+            <TableHead className='text-center'>URL</TableHead>
             <TableHead className='w-20 text-center'>Visited</TableHead>
           </TableRow>
         </TableHeader>
