@@ -159,6 +159,24 @@ func (q *Queries) GetUserByID(ctx context.Context, id int32) (User, error) {
 	return i, err
 }
 
+const permanentlyDeleteLink = `-- name: PermanentlyDeleteLink :one
+DELETE FROM links
+WHERE code = $1 AND user_id = $2 AND deleted_at IS NOT NULL
+RETURNING id
+`
+
+type PermanentlyDeleteLinkParams struct {
+	Code   string
+	UserID int32
+}
+
+func (q *Queries) PermanentlyDeleteLink(ctx context.Context, arg PermanentlyDeleteLinkParams) (int32, error) {
+	row := q.db.QueryRow(ctx, permanentlyDeleteLink, arg.Code, arg.UserID)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
+}
+
 const resetDb = `-- name: ResetDb :exec
 TRUNCATE users, links RESTART IDENTITY CASCADE
 `

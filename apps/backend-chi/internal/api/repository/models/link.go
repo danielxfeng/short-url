@@ -11,6 +11,7 @@ type CreateLinkParams = db.CreateLinkParams
 type GetLinksByUserIDParams = db.GetLinksByUserIDParams
 type SetLinkDeletedParams = db.SetLinkDeletedParams
 type SetLinkRestoredParams = db.SetLinkRestoredParams
+type PermanentlyDeleteLinkParams = db.PermanentlyDeleteLinkParams
 
 type LinkRepository interface {
 	CreateLink(ctx context.Context, arg CreateLinkParams) (Link, error)
@@ -20,4 +21,5 @@ type LinkRepository interface {
 	SetLinkDeleted(ctx context.Context, arg SetLinkDeletedParams) (int32, error)
 	SetLinkRestored(ctx context.Context, arg SetLinkRestoredParams) (int32, error)
 	SetLinkClicked(ctx context.Context, code string) (int32, error)
+	PermanentlyDeleteLink(ctx context.Context, arg PermanentlyDeleteLinkParams) (int32, error)
 }
