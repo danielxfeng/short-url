@@ -14,7 +14,7 @@ const Layout = () => {
       <main className='flex-1 flex flex-col items-center'>
         <Outlet />
       </main>
-      <footer className='h-12 flex shrink-0 items-center justify-center border-t'>
+      <footer className='h-12 flex shrink-0 items-center justify-center border-t bg-background/80'>
         <Footer />
       </footer>
     </div>
