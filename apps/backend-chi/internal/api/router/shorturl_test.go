@@ -10,6 +10,7 @@ import (
 func TestLinksToDTO(t *testing.T) {
 	now := time.Now().UTC()
 	deletedAt := now.Add(2 * time.Hour)
+	note := "note-1"
 
 	links := []models.Link{
 		{
@@ -17,6 +18,7 @@ func TestLinksToDTO(t *testing.T) {
 			UserID:      10,
 			Code:        "abc123",
 			OriginalUrl: "https://example.com/a",
+			Note:        nil,
 			Clicks:      3,
 			CreatedAt:   now,
 			DeletedAt:   nil,
@@ -26,6 +28,7 @@ func TestLinksToDTO(t *testing.T) {
 			UserID:      11,
 			Code:        "def456",
 			OriginalUrl: "https://example.com/b",
+			Note:        &note,
 			Clicks:      9,
 			CreatedAt:   now.Add(time.Minute),
 			DeletedAt:   &deletedAt,
@@ -44,10 +47,16 @@ func TestLinksToDTO(t *testing.T) {
 	if got[0].CreatedAt != links[0].CreatedAt {
 		t.Fatalf("created_at mismatch: got %v want %v", got[0].CreatedAt, links[0].CreatedAt)
 	}
+	if got[0].Note != nil {
+		t.Fatalf("expected first note to be nil, got %v", got[0].Note)
+	}
 	if got[0].IsDeleted {
 		t.Fatalf("expected active link to have is_deleted=false")
 	}
 
+	if got[1].Note == nil || *got[1].Note != note {
+		t.Fatalf("expected second note %q, got %v", note, got[1].Note)
+	}
 	if !got[1].IsDeleted {
 		t.Fatalf("expected deleted link to have is_deleted=true")
 	}

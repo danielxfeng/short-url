@@ -19,9 +19,9 @@ RETURNING *;
 
 -- name: CreateLink :one
 INSERT INTO links (
-  user_id, code, original_url
+  user_id, code, original_url, note
 ) VALUES (
-  $1, $2, $3
+  $1, $2, $3, $4
 )
 RETURNING *;
 

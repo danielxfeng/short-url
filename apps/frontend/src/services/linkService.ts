@@ -7,14 +7,12 @@ import {
 } from '@/schemas/schemas';
 import { fetchApi } from './service';
 
-const createLink = async (url: string): Promise<LinkRes> => {
-  const body: CreateLinkReq = { original_url: url };
-
+const createLink = async (req: CreateLinkReq): Promise<LinkRes> => {
   return fetchApi<CreateLinkReq, LinkRes>({
     path: 'short-urls',
     method: 'POST',
     isAuthRequired: true,
-    body,
+    body: req,
     schema: LinkResSchema,
   });
 };

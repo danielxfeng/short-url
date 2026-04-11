@@ -15,6 +15,7 @@ import (
 	"github.com/danielxfeng/short-url/apps/backend-chi/internal/dep"
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 const MAX_LIMIT = 200
@@ -32,6 +33,7 @@ func LinkToDTO(link models.Link) dto.LinkResponse {
 		Code:        link.Code,
 		OriginalUrl: link.OriginalUrl,
 		Clicks:      link.Clicks,
+		Note:        link.Note,
 		CreatedAt:   link.CreatedAt,
 		IsDeleted:   link.DeletedAt != nil,
 	}
@@ -121,33 +123,44 @@ func ShortURLRouter(dep *dep.Dep, repo models.Repository) http.Handler {
 				return
 			}
 
-			retryCount := MAX_CONFLICT_RETRIES
 			code := ""
 
-			for retryCount > 0 {
-				code = util.GenerateRandomString(LENGTH_CODE)
-				_, err := repo.Link.GetLinkByCodeWithDeleted(r.Context(), code)
-				if errors.Is(err, pgx.ErrNoRows) {
-					break // code is unique
-				} else if err != nil {
-					panic(err) // unexpected error
+			if req.Code != nil {
+				code = *req.Code
+			} else {
+				retryCount := MAX_CONFLICT_RETRIES
+
+				for retryCount > 0 {
+					code = util.GenerateRandomString(LENGTH_CODE)
+					_, err := repo.Link.GetLinkByCodeWithDeleted(r.Context(), code)
+					if errors.Is(err, pgx.ErrNoRows) {
+						break // code is unique
+					} else if err != nil {
+						panic(err) // unexpected error
+					}
+
+					retryCount--
 				}
 
-				retryCount--
-			}
-
-			if retryCount == 0 { // exhausted retries
-				util.SendError(w, apierror.NewApiError(500, "failed to generate unique code", nil))
-				return
+				if retryCount == 0 { // exhausted retries
+					util.SendError(w, apierror.NewApiError(500, "failed to generate unique code", nil))
+					return
+				}
 			}
 
 			link, err := repo.Link.CreateLink(r.Context(), models.CreateLinkParams{
 				UserID:      userID,
 				Code:        code,
 				OriginalUrl: req.OriginalUrl,
+				Note:        req.Note,
 			})
 
 			if err != nil {
+				var pgErr *pgconn.PgError
+				if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+					util.SendError(w, apierror.NewApiError(409, "code already exists", nil))
+					return
+				}
 				panic(err)
 			}
 

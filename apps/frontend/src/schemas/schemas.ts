@@ -15,6 +15,8 @@ export type UserRes = z.infer<typeof UserResSchema>;
 
 export const CreateLinkReqSchema = z.object({
   original_url: z.url(),
+  code: z.union([z.string().trim().min(1).max(255), z.null(), z.undefined()]),
+  note: z.union([z.string().trim().min(1).max(255), z.null(), z.undefined()]),
 });
 export type CreateLinkReq = z.infer<typeof CreateLinkReqSchema>;
 
@@ -23,6 +25,7 @@ export const LinkResSchema = z.object({
   code: z.string(),
   original_url: z.url(),
   clicks: z.int32(),
+  note: z.string().nullish(),
   created_at: z.iso.datetime({ offset: true }),
   is_deleted: z.boolean(),
 });

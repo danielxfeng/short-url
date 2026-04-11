@@ -24,32 +24,41 @@ const createFormMock = (overrides?: {
   isValid?: boolean;
   errors?: unknown[];
   isSubmitting?: boolean;
+  values?: Partial<Record<'original_url' | 'code' | 'note', string>>;
+  errorsByField?: Partial<Record<'original_url' | 'code' | 'note', unknown[]>>;
+  touchedByField?: Partial<Record<'original_url' | 'code' | 'note', boolean>>;
+  validByField?: Partial<Record<'original_url' | 'code' | 'note', boolean>>;
 }) => {
   const handleSubmit = vi.fn();
   const handleBlur = vi.fn();
   const handleChange = vi.fn();
-
-  const field: MockField = {
-    name: 'original_url',
-    state: {
-      value: overrides?.value ?? '',
-      meta: {
-        isTouched: overrides?.isTouched ?? false,
-        isValid: overrides?.isValid ?? true,
-        errors: overrides?.errors ?? [],
-      },
-    },
-    handleBlur,
-    handleChange,
-  };
 
   const form = {
     handleSubmit,
     state: {
       isSubmitting: overrides?.isSubmitting ?? false,
     },
-    Field: ({ children }: { name: string; children: (field: MockField) => ReactNode }) =>
-      children(field),
+    Field: ({
+      name,
+      children,
+    }: {
+      name: 'original_url' | 'code' | 'note';
+      children: (field: MockField) => ReactNode;
+    }) =>
+      children({
+        name,
+        state: {
+          value:
+            overrides?.values?.[name] ?? (name === 'original_url' ? (overrides?.value ?? '') : ''),
+          meta: {
+            isTouched: overrides?.touchedByField?.[name] ?? overrides?.isTouched ?? false,
+            isValid: overrides?.validByField?.[name] ?? overrides?.isValid ?? true,
+            errors: overrides?.errorsByField?.[name] ?? overrides?.errors ?? [],
+          },
+        },
+        handleBlur,
+        handleChange,
+      }),
   };
 
   return { form: form as never, handleSubmit, handleBlur, handleChange };
@@ -101,9 +110,9 @@ describe('CreateLinkFormComp', () => {
 
   it('shows validation errors when the field is touched and invalid', () => {
     const { form } = createFormMock({
-      isTouched: true,
-      isValid: false,
-      errors: ['Invalid URL'],
+      touchedByField: { original_url: true },
+      validByField: { original_url: false, code: true, note: true },
+      errorsByField: { original_url: ['Invalid URL'] },
     });
 
     render(

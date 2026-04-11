@@ -1,5 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import type { Dispatch, SetStateAction } from 'react';
 
+import { TooltipProvider } from '@/components/ui/tooltip';
 import type { LinkRes } from '@/schemas/schemas';
 import { LinkRowComp, LinkTableComp } from './LinksTable';
 
@@ -23,11 +25,20 @@ const deletedLink: LinkRes = {
 
 const renderRow = (props: React.ComponentProps<typeof LinkRowComp>) =>
   render(
-    <table>
-      <tbody>
-        <LinkRowComp {...props} />
-      </tbody>
-    </table>,
+    <TooltipProvider>
+      <table>
+        <tbody>
+          <LinkRowComp {...props} />
+        </tbody>
+      </table>
+    </TooltipProvider>,
+  );
+
+const renderTable = (props: React.ComponentProps<typeof LinkTableComp>) =>
+  render(
+    <TooltipProvider>
+      <LinkTableComp {...props} />
+    </TooltipProvider>,
   );
 
 describe('LinkRowComp', () => {
@@ -124,40 +135,36 @@ describe('LinkRowComp', () => {
 });
 
 describe('LinkTableComp', () => {
-  const loadMoreRef = { current: null };
+  const loadMoreRef: Dispatch<SetStateAction<HTMLDivElement | null>> = () => undefined;
 
   it('shows a loading spinner while fetching with no data', () => {
-    render(
-      <LinkTableComp
-        data={undefined}
-        hasNext={false}
-        isFetching
-        isFetchingNext={false}
-        removeLink={async () => undefined}
-        restoreDeleted={async () => undefined}
-        permanentlyDelete={async () => undefined}
-        isPending={false}
-        loadMoreRef={loadMoreRef}
-      />,
-    );
+    renderTable({
+      data: undefined,
+      hasNext: false,
+      isFetching: true,
+      isFetchingNext: false,
+      removeLink: async () => undefined,
+      restoreDeleted: async () => undefined,
+      permanentlyDelete: async () => undefined,
+      isPending: false,
+      loadMoreRef,
+    });
 
     expect(screen.getByRole('status', { name: 'Loading' })).toBeInTheDocument();
   });
 
   it('renders the infinite-scroll sentinel when there are more pages', () => {
-    render(
-      <LinkTableComp
-        data={[activeLink, deletedLink]}
-        hasNext
-        isFetching={false}
-        isFetchingNext={false}
-        removeLink={async () => undefined}
-        restoreDeleted={async () => undefined}
-        permanentlyDelete={async () => undefined}
-        isPending={false}
-        loadMoreRef={loadMoreRef}
-      />,
-    );
+    renderTable({
+      data: [activeLink, deletedLink],
+      hasNext: true,
+      isFetching: false,
+      isFetchingNext: false,
+      removeLink: async () => undefined,
+      restoreDeleted: async () => undefined,
+      permanentlyDelete: async () => undefined,
+      isPending: false,
+      loadMoreRef,
+    });
 
     const table = screen.getByRole('table', { name: 'The list of links.' });
     expect(table.parentElement?.parentElement?.lastElementChild).toBeInTheDocument();
@@ -165,19 +172,17 @@ describe('LinkTableComp', () => {
   });
 
   it('shows a spinner in the sentinel while fetching the next page', () => {
-    render(
-      <LinkTableComp
-        data={[activeLink]}
-        hasNext
-        isFetching={false}
-        isFetchingNext
-        removeLink={async () => undefined}
-        restoreDeleted={async () => undefined}
-        permanentlyDelete={async () => undefined}
-        isPending={false}
-        loadMoreRef={loadMoreRef}
-      />,
-    );
+    renderTable({
+      data: [activeLink],
+      hasNext: true,
+      isFetching: false,
+      isFetchingNext: true,
+      removeLink: async () => undefined,
+      restoreDeleted: async () => undefined,
+      permanentlyDelete: async () => undefined,
+      isPending: false,
+      loadMoreRef,
+    });
 
     expect(screen.getByRole('status', { name: 'Loading' })).toBeInTheDocument();
   });

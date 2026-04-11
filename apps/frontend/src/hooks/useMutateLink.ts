@@ -2,29 +2,32 @@ import { createLink, deleteLink, permanentlyDeleteLink, restoreLink } from '@/se
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { linksQueryOptions } from './useLinks';
 import logger from '@/lib/logger';
+import type { CreateLinkReq } from '@/schemas/schemas';
 
 interface LinkMutationInput {
-  urlOrCode: string;
+  code?: string;
+  req?: CreateLinkReq;
   method: 'create' | 'delete' | 'restore' | 'permanentDelete';
 }
 
 const useMutateLink = () => {
   const queryClient = useQueryClient();
 
-  const mutationFn = async ({ urlOrCode, method }: LinkMutationInput) => {
-    const trimmed = urlOrCode.trim();
+  const mutationFn = async ({ code, req, method }: LinkMutationInput) => {
+    const trimmed = code?.trim();
 
-    if (!trimmed) throw new Error('URL is required');
+    if (method !== 'create' && !trimmed) throw new Error('URL is required');
+    if (method === 'create' && !req) throw new Error('Request body is required');
 
     switch (method) {
       case 'create':
-        return createLink(trimmed);
+        return createLink(req!);
       case 'delete':
-        return deleteLink(trimmed);
+        return deleteLink(trimmed!);
       case 'restore':
-        return restoreLink(trimmed);
+        return restoreLink(trimmed!);
       case 'permanentDelete':
-        return permanentlyDeleteLink(trimmed);
+        return permanentlyDeleteLink(trimmed!);
       default:
         throw new Error('Invalid method');
     }
@@ -40,20 +43,20 @@ const useMutateLink = () => {
     },
   });
 
-  const addLink = async (url: string) => {
-    return await mutation.mutateAsync({ urlOrCode: url, method: 'create' });
+  const addLink = async (req: CreateLinkReq) => {
+    return await mutation.mutateAsync({ req, method: 'create' });
   };
 
   const removeLink = async (code: string) => {
-    await mutation.mutateAsync({ urlOrCode: code, method: 'delete' });
+    await mutation.mutateAsync({ code, method: 'delete' });
   };
 
   const restoreDeleted = async (code: string) => {
-    await mutation.mutateAsync({ urlOrCode: code, method: 'restore' });
+    await mutation.mutateAsync({ code, method: 'restore' });
   };
 
   const permanentlyDelete = async (code: string) => {
-    await mutation.mutateAsync({ urlOrCode: code, method: 'permanentDelete' });
+    await mutation.mutateAsync({ code, method: 'permanentDelete' });
   };
 
   const clearLinks = () => {
