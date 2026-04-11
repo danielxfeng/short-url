@@ -170,7 +170,7 @@ export const LinkTableComp = ({
   isPending,
 }: LinkTableCompProps) => (
   <section className='flex flex-col gap-4'>
-    <h2 className='font-medium text-base'>Links</h2>
+    <h2 className='text-base font-medium tracking-tight'>Links</h2>
     <div className='border rounded-2xl p-2 bg-background'>
       <Table className='table-fixed'>
         <TableCaption className='sr-only'>The list of links.</TableCaption>
@@ -178,7 +178,7 @@ export const LinkTableComp = ({
           <TableRow>
             <TableHead className='w-20 text-center'>Code</TableHead>
             <TableHead className='text-center'>URL</TableHead>
-            <TableHead className='w-20 text-center'>Visited</TableHead>
+            <TableHead className='w-20 text-center'>Clicks</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

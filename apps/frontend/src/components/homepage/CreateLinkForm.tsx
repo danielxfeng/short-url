@@ -39,7 +39,7 @@ export const CreateLinkFormComp = ({
   return (
     <Card className='w-full'>
       <CardHeader>
-        <CardTitle>Add a link</CardTitle>
+        <CardTitle className='tracking-tight'>Create short link</CardTitle>
       </CardHeader>
       <CardContent>
         <form
@@ -92,7 +92,7 @@ export const CreateLinkFormComp = ({
         <CardFooter className='border-t'>
           <div className='flex w-full items-center justify-between gap-4 rounded-lg border bg-muted/40 p-3'>
             <div>
-              <p className='text-xs uppercase tracking-wide text-muted-foreground'>Added link</p>
+              <p className='text-xs uppercase tracking-wide text-muted-foreground'>Short link</p>
               <a
                 href={shortLink}
                 target='_blank'

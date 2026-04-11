@@ -5,7 +5,7 @@ describe('Footer', () => {
   it('renders the credit link', () => {
     render(<Footer />);
 
-    expect(screen.getByText(/developped with/i)).toBeInTheDocument();
+    expect(screen.getByText(/developed with/i)).toBeInTheDocument();
 
     const link = screen.getByRole('link', { name: "Daniel's Lab" });
     expect(link).toBeInTheDocument();

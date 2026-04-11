@@ -65,7 +65,7 @@ export const ProfileComp = ({
           </AlertDialogTrigger>
           <AlertDialogContent size='sm'>
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete account?</AlertDialogTitle>
+              <AlertDialogTitle>Delete your account?</AlertDialogTitle>
               <AlertDialogDescription>
                 This will permanently delete your account and all associated data. This action
                 cannot be undone.
@@ -78,7 +78,7 @@ export const ProfileComp = ({
                 onClick={handleDeleteAccount}
                 disabled={isDeleting}
               >
-                Delete
+                Delete account
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

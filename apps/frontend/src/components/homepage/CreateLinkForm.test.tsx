@@ -165,7 +165,7 @@ describe('CreateLinkFormComp', () => {
     );
 
     const resultLink = screen.getByRole('link', { name: 'http://localhost:3000/abc123' });
-    expect(screen.getByText('Added link')).toBeInTheDocument();
+    expect(screen.getByText('Short link')).toBeInTheDocument();
     expect(resultLink).toHaveAttribute('href', 'http://localhost:3000/abc123');
 
     fireEvent.click(screen.getByRole('button', { name: 'Copy' }));
