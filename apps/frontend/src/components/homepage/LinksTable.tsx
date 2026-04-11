@@ -160,9 +160,9 @@ export const LinkTableComp = ({
   permanentlyDelete,
   isPending,
 }: LinkTableCompProps) => (
-  <section>
-    <h2 className='font-medium text-base mb-3'>Links</h2>
-    <div className='border rounded-2xl p-2'>
+  <section className='flex flex-col gap-4'>
+    <h2 className='font-medium text-base'>Links</h2>
+    <div className='border rounded-2xl p-2 bg-background'>
       <Table className='table-fixed'>
         <TableCaption className='sr-only'>The list of links.</TableCaption>
         <TableHeader>
