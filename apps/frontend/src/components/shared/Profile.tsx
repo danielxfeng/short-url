@@ -44,6 +44,7 @@ export const ProfileComp = ({
   <DropdownMenu>
     <DropdownMenuTrigger asChild>
       <Button variant='ghost' size='icon' className='rounded-full' aria-label='Open account menu'>
+        {/* User avatar */}
         <Avatar>
           <AvatarImage src={user.profile_pic ?? undefined} />
           <AvatarFallback>{user.display_name?.charAt(0) || 'U'}</AvatarFallback>
@@ -52,10 +53,13 @@ export const ProfileComp = ({
     </DropdownMenuTrigger>
     <DropdownMenuContent className='w-32'>
       <DropdownMenuGroup>
+        {/* Logout button */}
         <DropdownMenuItem onSelect={handleLogout}>Logout</DropdownMenuItem>
+
+        {/* Delete account button */}
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
+            <DropdownMenuItem onSelect={(event) => event.preventDefault()} variant='destructive'>
               Delete Account
             </DropdownMenuItem>
           </AlertDialogTrigger>
