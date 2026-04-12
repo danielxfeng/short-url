@@ -1,5 +1,6 @@
 package dev.danielslab.shorturl
 
+import dev.danielslab.shorturl.config.Config
 import dev.danielslab.shorturl.plugins.configureRateLimiting
 import dev.danielslab.shorturl.plugins.configureRequestValidation
 import dev.danielslab.shorturl.plugins.configureStatusPages
@@ -16,8 +17,10 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module() {
-    configureHTTP()
-    configureSecurity()
+    val config = Config.fromEnv()
+
+    configureHTTP(config)
+    configureSecurity(config)
     configureMonitoring()
     configureSerialization()
     configureRequestValidation()

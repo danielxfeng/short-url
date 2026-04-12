@@ -22,6 +22,7 @@ kotlin {
 }
 
 dependencies {
+    implementation("io.github.cdimascio:java-dotenv:5.2.2")
     implementation("io.ktor:ktor-server-compression")
     implementation("io.ktor:ktor-server-cors")
     implementation("io.ktor:ktor-server-core")
