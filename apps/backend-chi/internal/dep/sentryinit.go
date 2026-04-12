@@ -14,7 +14,7 @@ func InitSentry(appMode AppModeType, dsn string) error {
 		// Enable printing of SDK debug messages.
 
 		// Useful when getting started or trying to figure something out.
-		Debug: true,
+		Debug: false,
 		// Adds request headers and IP for users,
 		// visit: https://docs.sentry.io/platforms/go/data-management/data-collected/ for more info
 		AttachStacktrace: true,

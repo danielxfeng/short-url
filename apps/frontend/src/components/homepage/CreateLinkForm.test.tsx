@@ -75,9 +75,11 @@ const addedLink: LinkRes = {
 
 describe('CreateLinkFormComp', () => {
   const defaultHandleCopy = vi.fn().mockResolvedValue(undefined);
+  const defaultSetCopied = vi.fn();
 
   beforeEach(() => {
     defaultHandleCopy.mockClear();
+    defaultSetCopied.mockClear();
   });
 
   it('renders the input and submits the form', () => {
@@ -92,6 +94,7 @@ describe('CreateLinkFormComp', () => {
         addedLink={null}
         shortLink=''
         copied={false}
+        setCopied={defaultSetCopied}
         handleCopy={defaultHandleCopy}
       />,
     );
@@ -105,6 +108,7 @@ describe('CreateLinkFormComp', () => {
 
     expect(handleChange).toHaveBeenCalledWith('https://openai.com');
     expect(handleBlur).toHaveBeenCalledTimes(1);
+    expect(defaultSetCopied).toHaveBeenCalledWith(false);
     expect(handleSubmit).toHaveBeenCalledTimes(1);
   });
 
@@ -122,6 +126,7 @@ describe('CreateLinkFormComp', () => {
         addedLink={null}
         shortLink=''
         copied={false}
+        setCopied={defaultSetCopied}
         handleCopy={defaultHandleCopy}
       />,
     );
@@ -140,6 +145,7 @@ describe('CreateLinkFormComp', () => {
         addedLink={null}
         shortLink=''
         copied={false}
+        setCopied={defaultSetCopied}
         handleCopy={defaultHandleCopy}
       />,
     );
@@ -152,6 +158,7 @@ describe('CreateLinkFormComp', () => {
         addedLink={null}
         shortLink=''
         copied={false}
+        setCopied={defaultSetCopied}
         handleCopy={defaultHandleCopy}
       />,
     );
@@ -169,6 +176,7 @@ describe('CreateLinkFormComp', () => {
         addedLink={addedLink}
         shortLink='http://localhost:3000/abc123'
         copied={false}
+        setCopied={defaultSetCopied}
         handleCopy={handleCopy}
       />,
     );
@@ -195,6 +203,7 @@ describe('CreateLinkFormComp', () => {
         addedLink={addedLink}
         shortLink='http://localhost:3000/abc123'
         copied
+        setCopied={defaultSetCopied}
         handleCopy={defaultHandleCopy}
       />,
     );

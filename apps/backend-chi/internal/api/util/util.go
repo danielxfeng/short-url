@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -18,8 +19,12 @@ import (
 func ParseAndValidateJSON[T any](r *http.Request, validateFn func(*T) error) (T, error) {
 	var data T
 	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(&data); err != nil {
 		return data, apierror.NewApiError(400, "failed to parse the json body", err)
+	}
+	if err := decoder.Decode(&struct{}{}); err != io.EOF {
+		return data, apierror.NewApiError(400, "failed to parse the json body", errors.New("request body must contain a single JSON object"))
 	}
 
 	if validateFn == nil {

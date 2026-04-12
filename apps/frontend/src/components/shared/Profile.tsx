@@ -27,6 +27,7 @@ import type { UserRes } from '@/schemas/schemas';
 import { deleteUser } from '@/services';
 import logger from '@/lib/logger';
 import { toast } from 'sonner';
+import useMutateLink from '@/hooks/useMutateLink';
 
 interface ProfileCompProps {
   user: UserRes;
@@ -93,9 +94,11 @@ const Profile = () => {
   const navigate = useNavigate();
   const user = useUser((s) => s.user);
   const logout = useUser((s) => s.logout);
+  const { clearLinks } = useMutateLink();
 
   const handleLogout = () => {
     logout();
+    clearLinks();
     toast.success('Logged out successfully, redirecting to homepage');
     navigate('/');
   };
@@ -106,6 +109,7 @@ const Profile = () => {
     try {
       await deleteUser();
       logout();
+      clearLinks();
       toast.success('Account deleted successfully, redirecting to homepage');
       navigate('/');
     } catch (error) {

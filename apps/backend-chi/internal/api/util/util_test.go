@@ -105,6 +105,18 @@ func TestParseAndValidateJSON(t *testing.T) {
 			wantErr:    true,
 		},
 		{
+			name:       "unknown field is rejected",
+			body:       `{"name":"alice","age":30,"extra":true}`,
+			validateFn: validateOK,
+			wantErr:    true,
+		},
+		{
+			name:       "trailing json payload is rejected",
+			body:       `{"name":"alice","age":30}{"name":"bob","age":20}`,
+			validateFn: validateOK,
+			wantErr:    true,
+		},
+		{
 			name:       "nil validator skips validation",
 			body:       `{"name":"bob","age":20}`,
 			validateFn: nil,

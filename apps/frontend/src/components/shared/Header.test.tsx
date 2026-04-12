@@ -2,6 +2,10 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import Header from './Header';
 
+vi.mock('./Profile', () => ({
+  default: () => <div>Profile</div>,
+}));
+
 describe('Header', () => {
   it('renders a home link', () => {
     render(
