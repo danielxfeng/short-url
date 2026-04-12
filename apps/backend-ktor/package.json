@@ -1,0 +1,16 @@
+{
+  "name": "backend-ktor",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Ktor backend scripts exposed through the pnpm workspace",
+  "scripts": {
+    "test": "./gradlew test",
+    "build": "./gradlew build",
+    "precommit": "pnpm run test && pnpm run build",
+    "start": "./gradlew run",
+    "jar": "./gradlew buildFatJar",
+    "docker:build": "./gradlew buildImage",
+    "docker:publish:local": "./gradlew publishImageToLocalRegistry"
+  },
+  "packageManager": "pnpm@10.14.0"
+}

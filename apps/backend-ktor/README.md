@@ -47,6 +47,26 @@ To build or run the project, use one of the following tasks:
 | `./gradlew run`                         | Run the server                                                       |
 | `./gradlew runDocker`                   | Run using the local docker image                                     |
 
+## Monorepo Commands
+
+This app is also exposed through the workspace `pnpm` setup so CI and local commands can use the same entrypoints as the other apps:
+
+| Task                                              | Description                           |
+| ------------------------------------------------- | ------------------------------------- |
+| `pnpm --filter backend-ktor test`                 | Run tests                             |
+| `pnpm --filter backend-ktor build`                | Build the application                 |
+| `pnpm --filter backend-ktor start`                | Run the Ktor server locally           |
+| `pnpm --filter backend-ktor jar`                  | Build the executable fat JAR          |
+| `pnpm --filter backend-ktor docker:build`         | Build the container image             |
+| `pnpm --filter backend-ktor docker:publish:local` | Publish the image to a local registry |
+
+## CI And Deploy
+
+- Pull requests touching `apps/backend-ktor/**` run `.github/workflows/ci-backend-ktor.yml`.
+- The workflow sets up Java 21 and runs `./gradlew test build` directly from `apps/backend-ktor`.
+- For deployment artifacts, use `pnpm --filter backend-ktor jar` for a fat JAR or `pnpm --filter backend-ktor docker:build` for a container image.
+- Registry publishing is intentionally left provider-specific. Once you choose a registry, the deploy job can extend the CI workflow with Docker login and `docker push` after `buildImage`.
+
 If the server starts successfully, you'll see the following output:
 
 ```

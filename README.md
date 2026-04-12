@@ -5,6 +5,7 @@ A full-stack URL shortener with OAuth login, JWT-protected link management, clic
 The project is organized as a monorepo:
 
 - `apps/backend-chi`: Go + Chi backend API
+- `apps/backend-ktor`: Kotlin + Ktor backend API
 - `apps/frontend`: React + Vite frontend
 
 The project is hosted on: [https://s.danielslab.dev](https://s.danielslab.dev)
@@ -129,6 +130,7 @@ The project is hosted on: [https://s.danielslab.dev](https://s.danielslab.dev)
 ## Prerequisites
 
 - Go 1.25+
+- Java 21+
 - PostgreSQL
 - pnpm 10+
 - Node.js 20+
@@ -181,6 +183,14 @@ pnpm --filter backend-chi dev
 
 The API starts on `http://localhost:8080` by default.
 
+### Backend (Ktor)
+
+```bash
+pnpm --filter backend-ktor start
+```
+
+The Ktor API also starts on `http://localhost:8080` by default, so do not run it on the same port as `backend-chi` unless you reconfigure one of them.
+
 ### Frontend
 
 ```bash
@@ -196,6 +206,8 @@ Run all tests:
 ```bash
 pnpm -r run test
 ```
+
+This now includes `apps/backend-ktor` through its workspace wrapper scripts.
 
 ## API Overview
 

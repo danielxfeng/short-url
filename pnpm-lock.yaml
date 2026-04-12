@@ -22,6 +22,8 @@ importers:
 
   apps/backend-chi: {}
 
+  apps/backend-ktor: {}
+
   apps/frontend:
     dependencies:
       "@sentry/react":
