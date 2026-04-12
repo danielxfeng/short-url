@@ -9,6 +9,7 @@ import { TooltipProvider } from './components/ui/tooltip.tsx';
 import { QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import logger from './lib/logger.ts';
+import ErrorPage from './components/ErrorPage.tsx';
 
 const container = document.getElementById('root');
 
@@ -44,7 +45,7 @@ const queryClient = new QueryClient({
 });
 
 root.render(
-  <Sentry.ErrorBoundary fallback={<div>Something went wrong.</div>}>
+  <Sentry.ErrorBoundary fallback={<ErrorPage />}>
     <BrowserRouter>
       <TooltipProvider>
         <QueryClientProvider client={queryClient}>

@@ -78,7 +78,7 @@ export const LinkRowComp = ({
               <a
                 href={`/${link.code}`}
                 target='_blank'
-                rel='noopener noreferrer'
+                rel='noopener'
                 className='hover:underline truncate block'
                 onClick={(e) => e.stopPropagation()}
               >

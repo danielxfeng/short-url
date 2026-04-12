@@ -42,6 +42,21 @@ const renderTable = (props: React.ComponentProps<typeof LinkTableComp>) =>
   );
 
 describe('LinkRowComp', () => {
+  it('opens the short link in a new tab without suppressing referrer at the anchor level', () => {
+    renderRow({
+      link: activeLink,
+      removeLink: async () => undefined,
+      restoreDeleted: async () => undefined,
+      permanentlyDelete: async () => undefined,
+      isPending: false,
+    });
+
+    const link = screen.getByRole('link', { name: 'alive123' });
+    expect(link).toHaveAttribute('href', '/alive123');
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener');
+  });
+
   it('soft deletes an active link from the expanded row actions', async () => {
     let removedCode: string | null = null;
     let restoredCode: string | null = null;
