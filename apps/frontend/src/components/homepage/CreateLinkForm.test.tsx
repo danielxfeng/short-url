@@ -134,6 +134,32 @@ describe('CreateLinkFormComp', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Invalid URL');
   });
 
+  it('normalizes empty optional fields to undefined', () => {
+    const { form, handleChange } = createFormMock();
+
+    render(
+      <CreateLinkFormComp
+        form={form}
+        isPending={false}
+        addedLink={null}
+        shortLink=''
+        copied={false}
+        setCopied={defaultSetCopied}
+        handleCopy={defaultHandleCopy}
+      />,
+    );
+
+    fireEvent.change(screen.getByPlaceholderText('Custom code (optional)'), {
+      target: { value: '' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('Note (optional)'), {
+      target: { value: '   ' },
+    });
+
+    expect(handleChange).toHaveBeenCalledWith(undefined);
+    expect(handleChange).toHaveBeenLastCalledWith(undefined);
+  });
+
   it('disables the submit button while pending or submitting', () => {
     const pendingForm = createFormMock().form;
     const submittingForm = createFormMock({ isSubmitting: true }).form;
