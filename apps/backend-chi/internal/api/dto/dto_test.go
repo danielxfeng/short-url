@@ -17,6 +17,9 @@ func newValidatorWithTrim(t *testing.T) *validator.Validate {
 	if err := v.RegisterValidation("shortcode", shortCodeValue); err != nil {
 		t.Fatalf("register shortcode validation: %v", err)
 	}
+	if err := v.RegisterValidation("safe_target_url", safeTargetURLValue); err != nil {
+		t.Fatalf("register safe_target_url validation: %v", err)
+	}
 
 	return v
 }
@@ -324,6 +327,69 @@ func TestCreateLinkReqValidation(t *testing.T) {
 				OriginalUrl: "not-a-url",
 			},
 			wantPass: false,
+		},
+		{
+			name: "only http and https are allowed",
+			in: CreateLinkReq{
+				OriginalUrl: "ftp://example.com/file",
+			},
+			wantPass: false,
+		},
+		{
+			name: "localhost is rejected",
+			in: CreateLinkReq{
+				OriginalUrl: "http://localhost:8080",
+			},
+			wantPass: false,
+		},
+		{
+			name: "loopback ipv4 is rejected",
+			in: CreateLinkReq{
+				OriginalUrl: "http://127.0.0.1/admin",
+			},
+			wantPass: false,
+		},
+		{
+			name: "private ipv4 is rejected",
+			in: CreateLinkReq{
+				OriginalUrl: "http://10.0.0.5/service",
+			},
+			wantPass: false,
+		},
+		{
+			name: "link local ipv4 is rejected",
+			in: CreateLinkReq{
+				OriginalUrl: "http://169.254.169.254/latest/meta-data",
+			},
+			wantPass: false,
+		},
+		{
+			name: "loopback ipv6 is rejected",
+			in: CreateLinkReq{
+				OriginalUrl: "http://[::1]/admin",
+			},
+			wantPass: false,
+		},
+		{
+			name: "userinfo is rejected",
+			in: CreateLinkReq{
+				OriginalUrl: "https://user:pass@example.com/path",
+			},
+			wantPass: false,
+		},
+		{
+			name: "internal hostname suffix is rejected",
+			in: CreateLinkReq{
+				OriginalUrl: "https://grafana.internal/dashboard",
+			},
+			wantPass: false,
+		},
+		{
+			name: "public https url is allowed",
+			in: CreateLinkReq{
+				OriginalUrl: "https://example.com/path?q=1",
+			},
+			wantPass: true,
 		},
 		{
 			name: "spaces only fails required after trim",
