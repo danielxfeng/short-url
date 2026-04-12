@@ -780,6 +780,20 @@ func TestShortURLRouter_CreateValidationError(t *testing.T) {
 	}
 }
 
+func TestShortURLRouter_CreateRejectsPrivateTargetURL(t *testing.T) {
+	d, q, token := newShortURLIntegrationSetup(t, 42)
+	h := ShortURLRouter(d, newShortURLTestRepo(q))
+	_ = seedUser(t, q, "private-target-user")
+
+	badBody := []byte(`{"original_url":"http://127.0.0.1:8080/admin"}`)
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, authedReq(http.MethodPost, "/", token, badBody))
+
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("expected %d, got %d", http.StatusBadRequest, rr.Code)
+	}
+}
+
 func TestShortURLRouter_CreateInvalidCustomCodeReturnsBadRequest(t *testing.T) {
 	d, q, token := newShortURLIntegrationSetup(t, 42)
 	h := ShortURLRouter(d, newShortURLTestRepo(q))
