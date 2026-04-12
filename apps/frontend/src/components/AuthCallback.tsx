@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import { getUserInfo } from '@/services';
 import { useUser } from '@/hooks/useUser';
+import useMutateLink from '@/hooks/useMutateLink';
 
 const AuthCallback = () => {
   const [searchParams] = useSearchParams();
@@ -11,6 +12,7 @@ const AuthCallback = () => {
   const login = useUser((s) => s.login);
   const logout = useUser((s) => s.logout);
   const navigate = useNavigate();
+  const { clearLinks } = useMutateLink();
 
   useEffect(() => {
     let isCancelled = false;
@@ -19,6 +21,7 @@ const AuthCallback = () => {
       if (error) {
         toast.error(`Authentication failed: ${error}`);
         logout();
+        clearLinks();
         navigate('/', { replace: true });
         return;
       }
@@ -42,6 +45,8 @@ const AuthCallback = () => {
         logout();
         console.error('Error fetching user info:', err);
         toast.error('An error occurred while fetching user information.');
+      } finally {
+        clearLinks();
       }
 
       if (!isCancelled) navigate('/', { replace: true });
@@ -52,7 +57,7 @@ const AuthCallback = () => {
     return () => {
       isCancelled = true;
     };
-  }, [auth, error, login, logout, navigate]);
+  }, [auth, clearLinks, error, login, logout, navigate]);
 
   return null;
 };
