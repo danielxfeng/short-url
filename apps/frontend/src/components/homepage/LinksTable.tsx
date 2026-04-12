@@ -204,16 +204,24 @@ export const LinkTableComp = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data?.map((link) => (
-            <LinkRowComp
-              key={link.id}
-              link={link}
-              removeLink={removeLink}
-              restoreDeleted={restoreDeleted}
-              permanentlyDelete={permanentlyDelete}
-              isPending={isPending}
-            />
-          ))}
+          {!isFetching && data?.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={3} className='text-center'>
+                No links found
+              </TableCell>
+            </TableRow>
+          ) : (
+            data?.map((link) => (
+              <LinkRowComp
+                key={link.id}
+                link={link}
+                removeLink={removeLink}
+                restoreDeleted={restoreDeleted}
+                permanentlyDelete={permanentlyDelete}
+                isPending={isPending}
+              />
+            ))
+          )}
         </TableBody>
       </Table>
 
