@@ -25,6 +25,7 @@ interface CreateLinkFormCompProps {
   addedLink: ReturnType<typeof useAddLinkForm>['addedLink'];
   shortLink: string;
   copied: boolean;
+  setCopied: React.Dispatch<React.SetStateAction<boolean>>;
   handleCopy: () => Promise<void>;
 }
 
@@ -34,6 +35,7 @@ export const CreateLinkFormComp = ({
   addedLink,
   shortLink,
   copied,
+  setCopied,
   handleCopy,
 }: CreateLinkFormCompProps) => {
   return (
@@ -46,6 +48,7 @@ export const CreateLinkFormComp = ({
           id='new-link-form'
           onSubmit={(e) => {
             e.preventDefault();
+            setCopied(false);
             form.handleSubmit();
           }}
           className='flex flex-col gap-4'
@@ -194,6 +197,7 @@ const CreateLinkForm = () => {
       addedLink={addedLink}
       shortLink={shortLink}
       copied={copied}
+      setCopied={setCopied}
       handleCopy={handleCopy}
     />
   );
