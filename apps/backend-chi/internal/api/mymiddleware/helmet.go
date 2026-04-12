@@ -39,7 +39,7 @@ type Config struct {
 	// Optional. Default value false.
 	HSTSPreloadEnabled bool
 	// ReferrerPolicy
-	// Optional. Default value "no-referrer".
+	// Optional. Default value "origin".
 	ReferrerPolicy string
 	// Permissions-Policy
 	// Optional. Default value "".
@@ -83,7 +83,7 @@ func Helmet(config ...Config) func(http.Handler) http.Handler {
 		cfg.XFrameOptions = "SAMEORIGIN"
 	}
 	if cfg.ReferrerPolicy == "" {
-		cfg.ReferrerPolicy = "no-referrer"
+		cfg.ReferrerPolicy = "origin"
 	}
 	if cfg.CrossOriginEmbedderPolicy == "" {
 		cfg.CrossOriginEmbedderPolicy = "require-corp"

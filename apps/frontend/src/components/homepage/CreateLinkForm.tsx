@@ -153,7 +153,7 @@ export const CreateLinkFormComp = ({
               <a
                 href={shortLink}
                 target='_blank'
-                rel='noopener noreferrer'
+                rel='noopener'
                 className='block truncate font-medium text-foreground underline-offset-4 hover:underline'
               >
                 {shortLink}
