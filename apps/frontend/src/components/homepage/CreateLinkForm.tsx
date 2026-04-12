@@ -19,6 +19,11 @@ const handleError = (error: unknown): { message: string } | undefined => {
   return { message: 'An unknown error occurred' };
 };
 
+const optionalFieldValue = (value: string) => {
+  const trimmed = value.trim();
+  return trimmed === '' ? undefined : value;
+};
+
 interface CreateLinkFormCompProps {
   form: ReturnType<typeof useAddLinkForm>['form'];
   isPending: boolean;
@@ -104,7 +109,7 @@ export const CreateLinkFormComp = ({
                       name={field.name}
                       value={field.state.value ?? ''}
                       onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.value)}
+                      onChange={(e) => field.handleChange(optionalFieldValue(e.target.value))}
                       aria-invalid={isInvalid}
                       placeholder='Custom code (optional)'
                       autoComplete='off'
@@ -131,7 +136,7 @@ export const CreateLinkFormComp = ({
                       name={field.name}
                       value={field.state.value ?? ''}
                       onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.value)}
+                      onChange={(e) => field.handleChange(optionalFieldValue(e.target.value))}
                       aria-invalid={isInvalid}
                       placeholder='Note (optional)'
                       autoComplete='off'
