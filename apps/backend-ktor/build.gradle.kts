@@ -29,7 +29,7 @@ dependencies {
     implementation("io.ktor:ktor-server-auth")
     implementation("io.ktor:ktor-server-auth-jwt")
     implementation("io.ktor:ktor-client-core")
-    implementation("io.ktor:ktor-client-apache")
+    implementation("io.ktor:ktor-client-apache5")
     implementation("io.ktor:ktor-server-request-validation")
     implementation("io.ktor:ktor-server-call-logging")
     implementation("io.ktor:ktor-server-content-negotiation")

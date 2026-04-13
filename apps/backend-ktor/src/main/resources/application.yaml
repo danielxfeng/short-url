@@ -3,16 +3,20 @@ ktor:
     modules:
       - dev.danielslab.shorturl.ApplicationKt.module
   deployment:
-    port: 8080
+    port: 8081
 jwt:
   domain: "https://api-s.danielslab.dev"
   audience: "danielslab-short-url"
   realm: "short-url-ktor"
-  secret: {}
-postgres:
-  url: "jdbc:postgresql://localhost/default"
-  user: username
-  password: password
+oauth:
+  google:
+    authorize-url: "https://accounts.google.com/o/oauth2/auth"
+    access-token-url: "https://accounts.google.com/o/oauth2/token"
+    scopes: "openid,profile"
+  github:
+    authorize-url: "https://github.com/login/oauth/authorize"
+    access-token-url: "https://github.com/login/oauth/access_token"
+    scopes: "read:user"
 links:
   default-page-size: 20
   max-page-size: 100

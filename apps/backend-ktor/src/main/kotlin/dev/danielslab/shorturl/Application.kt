@@ -23,12 +23,7 @@ fun Application.module() {
         corsHost = config.corsHost,
         corsScheme = config.corsScheme,
     )
-    configureSecurity(
-        jwtSecret = config.jwtSecret,
-        backendPublicUrl = config.backendPublicUrl,
-        googleClientId = config.googleClientId,
-        googleClientSecret = config.googleClientSecret,
-    )
+    configureSecurity(config)
     configureMonitoring()
     configureSerialization()
     configureRequestValidation()
