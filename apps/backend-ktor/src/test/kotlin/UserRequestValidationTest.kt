@@ -18,11 +18,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class UserRequestValidationTest {
-    // Coverage matrix from the prompt:
-    // provider: happy / missing / invalid enum / invalid type
-    // providerId: happy / missing / blank / invalid type
-    // displayName: happy(null) / happy(non-null) / happy(omitted) / blank / too long / invalid type
-    // profilePicture: happy(null) / happy(non-null) / happy(omitted) / blank / too long / invalid type
 
     @Test
     fun `accepts valid user payload with provider and providerId`() = testApplication {
