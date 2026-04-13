@@ -12,10 +12,12 @@ oauth:
   google:
     authorize-url: "https://accounts.google.com/o/oauth2/auth"
     access-token-url: "https://accounts.google.com/o/oauth2/token"
+    user-info-url: "https://openidconnect.googleapis.com/v1/userinfo"
     scopes: "openid,profile"
   github:
     authorize-url: "https://github.com/login/oauth/authorize"
     access-token-url: "https://github.com/login/oauth/access_token"
+    user-info-url: "https://api.github.com/user"
     scopes: "read:user"
 links:
   default-page-size: 20

@@ -35,7 +35,7 @@ class PqRepositoryTest {
 
     @Test
     fun `upsertUser inserts when user does not exist`() = runBlocking {
-        testContext.repository.upsertUser(
+        val user = testContext.repository.upsertUser(
             UserUpsertInput(
                 provider = UserProvider.GOOGLE,
                 providerId = "google-1",
@@ -44,8 +44,6 @@ class PqRepositoryTest {
             )
         )
 
-        val user = testContext.repository.getUserById(1)
-        assertNotNull(user)
         assertEquals(1, user.id)
         assertEquals(UserProvider.GOOGLE, user.provider)
         assertEquals("google-1", user.providerId)
@@ -63,7 +61,7 @@ class PqRepositoryTest {
             profilePicture = "https://example.com/a.png",
         )
 
-        testContext.repository.upsertUser(
+        val user = testContext.repository.upsertUser(
             UserUpsertInput(
                 provider = UserProvider.GOOGLE,
                 providerId = "google-1",
@@ -72,8 +70,6 @@ class PqRepositoryTest {
             )
         )
 
-        val user = testContext.repository.getUserById(1)
-        assertNotNull(user)
         assertEquals(1, user.id)
         assertEquals("After", user.displayName)
         assertEquals("https://example.com/b.png", user.profilePicture)

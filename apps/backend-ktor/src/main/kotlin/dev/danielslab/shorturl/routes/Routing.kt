@@ -1,12 +1,27 @@
 package dev.danielslab.shorturl.routes
 
+import dev.danielslab.shorturl.config.Config
+import dev.danielslab.shorturl.repository.core.LinkRepository
+import dev.danielslab.shorturl.repository.core.UserRepository
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 
-fun Application.configureRouting() {
+fun Application.configureRouting(
+    config: Config,
+    userRepository: UserRepository,
+    linkRepository: LinkRepository,
+) {
     routing {
         route("/api/v1") {
-            healthRoutes()
+            route("/health") {
+                healthRoutes()
+            }
+            route("/user") {
+                userRoutes(config, userRepository)
+            }
+            route("/short-urls") {
+                linkRoutes()
+            }
         }
     }
 }

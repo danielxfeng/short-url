@@ -52,7 +52,7 @@ class PqRepository(
         }
     }
 
-    override suspend fun upsertUser(userInput: UserUpsertInput): Unit = dbExecutor.query {
+    override suspend fun upsertUser(userInput: UserUpsertInput): User = dbExecutor.query {
         UsersTable.upsert(
             keys = arrayOf(UsersTable.provider, UsersTable.providerId),
         ) {
@@ -61,6 +61,15 @@ class PqRepository(
             it[displayName] = userInput.displayName
             it[profilePic] = userInput.profilePicture
         }
+
+        UsersTable
+            .selectAll()
+            .where {
+                (UsersTable.provider eq userInput.provider) and
+                (UsersTable.providerId eq userInput.providerId)
+            }
+            .single()
+            .toUser()
     }
 
     override suspend fun createLink(request: LinkCreateInput): Link = try {
