@@ -23,6 +23,7 @@ data class LinkListInput(
 interface LinkRepository {
     suspend fun createLink(request: LinkCreateInput): Link
     suspend fun getLinkByCode(code: String): Link?
+    suspend fun getLinkByCodeWithDeleted(code: String): Link?
     suspend fun getLinksByUserId(request: LinkListInput): List<Link>
     suspend fun softDeleteLinkById(request: LinkDeleteInput)
     suspend fun restoreLinkById(request: LinkDeleteInput)

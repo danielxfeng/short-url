@@ -14,7 +14,7 @@ class LinkResponseTest {
         val createdAt = Instant.parse("2026-04-13T10:15:30Z")
         val link = Link(
             id = 1,
-            userId = "user-1",
+            userId = 1,
             code = "abc123",
             originalUrl = "https://example.com",
             clicks = 7,
@@ -26,7 +26,7 @@ class LinkResponseTest {
         val response = LinkResponse.fromDomain(link)
 
         assertEquals(1, response.id)
-        assertEquals("user-1", response.userId)
+        assertEquals(1, response.userId)
         assertEquals("abc123", response.code)
         assertEquals("https://example.com", response.originalUrl)
         assertEquals(7, response.clicks)
@@ -41,7 +41,7 @@ class LinkResponseTest {
         val deletedAt = Instant.parse("2026-04-14T10:15:30Z")
         val link = Link(
             id = 2,
-            userId = "user-2",
+            userId = 2,
             code = "xyz789",
             originalUrl = "https://example.org",
             clicks = 0,

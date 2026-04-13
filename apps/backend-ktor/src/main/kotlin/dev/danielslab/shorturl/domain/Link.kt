@@ -5,7 +5,7 @@ import kotlin.time.Instant
 
 data class Link(
     val id: Int,
-    val userId: String,
+    val userId: Int,
     val code: String,
     val originalUrl: String,
     val clicks: Int,

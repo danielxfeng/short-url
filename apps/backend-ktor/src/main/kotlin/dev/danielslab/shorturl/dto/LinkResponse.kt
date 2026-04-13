@@ -4,7 +4,7 @@ import dev.danielslab.shorturl.domain.Link
 
 data class LinkResponse(
     val id: Int,
-    val userId: String,
+    val userId: Int,
     val code: String,
     val originalUrl: String,
     val clicks: Int,
