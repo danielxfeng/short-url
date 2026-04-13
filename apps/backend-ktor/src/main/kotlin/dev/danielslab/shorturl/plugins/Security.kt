@@ -2,7 +2,6 @@ package dev.danielslab.shorturl.plugins
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import dev.danielslab.shorturl.config.Config
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
 import io.ktor.http.*
@@ -13,12 +12,16 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 
-fun Application.configureSecurity(config: Config) {
+fun Application.configureSecurity(
+    jwtSecret: String,
+    backendPublicUrl: String,
+    googleClientId: String,
+    googleClientSecret: String,
+) {
     // Please read the jwt property from the config file if you are using EngineMain
     val jwtAudience = "jwt-audience"
     val jwtDomain = "https://jwt-provider-domain/"
     val jwtRealm = "ktor sample app"
-    val jwtSecret = config.jwtSecret
     authentication {
         jwt {
             realm = jwtRealm
@@ -36,15 +39,15 @@ fun Application.configureSecurity(config: Config) {
     }
     authentication {
         oauth("auth-oauth-google") {
-            urlProvider = { "${config.backendPublicUrl}/callback" }
+            urlProvider = { "$backendPublicUrl/callback" }
             providerLookup = {
                 OAuthServerSettings.OAuth2ServerSettings(
                     name = "google",
                     authorizeUrl = "https://accounts.google.com/o/oauth2/auth",
                     accessTokenUrl = "https://accounts.google.com/o/oauth2/token",
                     requestMethod = HttpMethod.Post,
-                    clientId = config.googleClientId,
-                    clientSecret = config.googleClientSecret,
+                    clientId = googleClientId,
+                    clientSecret = googleClientSecret,
                     defaultScopes = listOf("https://www.googleapis.com/auth/userinfo.profile")
                 )
             }

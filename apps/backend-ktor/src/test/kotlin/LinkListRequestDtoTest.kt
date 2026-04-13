@@ -1,28 +1,12 @@
 package dev.danielslab.shorturl
 
-import dev.danielslab.shorturl.config.Config
 import dev.danielslab.shorturl.dto.LinkListRequestDto
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class LinkListRequestDtoTest {
-    private val config = Config(
-        port = 8080,
-        cors = "http://localhost:5173",
-        backendPublicUrl = "http://localhost:8080",
-        dbUrl = "jdbc:postgresql://localhost/default",
-        testDbUrl = "jdbc:postgresql://localhost/test",
-        jwtSecret = "secret",
-        jwtExpiry = 168,
-        notFoundPage = "http://localhost:5173/not-found",
-        googleClientId = "google-client-id",
-        googleClientSecret = "google-client-secret",
-        githubClientId = "github-client-id",
-        githubClientSecret = "github-client-secret",
-        frontendRedirectUrl = "http://localhost:5173/auth/callback",
-        linkDefaultPageSize = 20,
-        linkMaxPageSize = 100,
-    )
+    private val defaultPageSize = 20
+    private val maxPageSize = 100
 
     @Test
     fun `uses default page size when limit is omitted`() {
@@ -31,7 +15,11 @@ class LinkListRequestDtoTest {
             limit = null,
         )
 
-        val result = request.toRepoParam(config, userId = 1)
+        val result = request.toRepoParam(
+            userId = 1,
+            defaultPageSize = defaultPageSize,
+            maxPageSize = maxPageSize,
+        )
 
         assertEquals(1, result.userId)
         assertEquals(null, result.cursor)
@@ -45,7 +33,11 @@ class LinkListRequestDtoTest {
             limit = 50,
         )
 
-        val result = request.toRepoParam(config, userId = 1)
+        val result = request.toRepoParam(
+            userId = 1,
+            defaultPageSize = defaultPageSize,
+            maxPageSize = maxPageSize,
+        )
 
         assertEquals(1, result.userId)
         assertEquals("cursor-1", result.cursor)
@@ -59,7 +51,11 @@ class LinkListRequestDtoTest {
             limit = 5,
         )
 
-        val result = request.toRepoParam(config, userId = 1)
+        val result = request.toRepoParam(
+            userId = 1,
+            defaultPageSize = defaultPageSize,
+            maxPageSize = maxPageSize,
+        )
 
         assertEquals(20, result.limit)
     }
@@ -71,7 +67,11 @@ class LinkListRequestDtoTest {
             limit = 200,
         )
 
-        val result = request.toRepoParam(config, userId = 1)
+        val result = request.toRepoParam(
+            userId = 1,
+            defaultPageSize = defaultPageSize,
+            maxPageSize = maxPageSize,
+        )
 
         assertEquals(100, result.limit)
     }

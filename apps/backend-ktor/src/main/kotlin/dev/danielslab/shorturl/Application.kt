@@ -19,8 +19,16 @@ fun main(args: Array<String>) {
 fun Application.module() {
     val config = Config.fromEnv(this)
 
-    configureHTTP(config)
-    configureSecurity(config)
+    configureHTTP(
+        corsHost = config.corsHost,
+        corsScheme = config.corsScheme,
+    )
+    configureSecurity(
+        jwtSecret = config.jwtSecret,
+        backendPublicUrl = config.backendPublicUrl,
+        googleClientId = config.googleClientId,
+        googleClientSecret = config.googleClientSecret,
+    )
     configureMonitoring()
     configureSerialization()
     configureRequestValidation()
