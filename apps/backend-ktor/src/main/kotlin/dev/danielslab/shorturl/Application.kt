@@ -17,7 +17,7 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module() {
-    val config = Config.fromEnv()
+    val config = Config.fromEnv(this)
 
     configureHTTP(config)
     configureSecurity(config)
