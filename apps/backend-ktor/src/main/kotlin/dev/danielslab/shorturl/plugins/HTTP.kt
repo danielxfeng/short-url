@@ -19,7 +19,9 @@ fun Application.configureHTTP(
         allowMethod(HttpMethod.Post)
         allowMethod(HttpMethod.Put)
         allowMethod(HttpMethod.Delete)
+        allowHeader(HttpHeaders.Accept)
         allowHeader(HttpHeaders.Authorization)
+        allowHeader(HttpHeaders.ContentType)
         allowHost(corsHost, schemes = listOf(corsScheme))
     }
     install(HSTS) {
