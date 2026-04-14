@@ -71,7 +71,7 @@ class UserRoutesTest {
                 followRedirects = false
             }.get("/api/v1/user/auth/discord").apply {
                 assertEquals(HttpStatusCode.Found, status)
-                assertEquals("http://localhost:5173/not-found?error=provider+not+found", headers["Location"])
+                assertEquals("http://localhost:5173/auth/callback?error=provider+not+found", headers["Location"])
             }
         }
 

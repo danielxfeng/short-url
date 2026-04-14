@@ -41,7 +41,7 @@ fun Route.userRoutes(
                     "google" -> "/api/v1/user/auth/google/login"
                     "github" -> "/api/v1/user/auth/github/login"
                     else -> {
-                        redirectAuthError(call, config.notFoundPage, "provider not found")
+                        redirectAuthError(call, config.frontendRedirectUrl, "provider not found")
                         return@get
                     }
                 }
@@ -74,7 +74,7 @@ fun Route.userRoutes(
                     call.respondRedirect(
                         URLBuilder(config.frontendRedirectUrl)
                             .apply {
-                                parameters.append("token", token)
+                                parameters.append("auth", token)
                             }.build(),
                     )
                 }
@@ -106,7 +106,7 @@ fun Route.userRoutes(
                     call.respondRedirect(
                         URLBuilder(config.frontendRedirectUrl)
                             .apply {
-                                parameters.append("token", token)
+                                parameters.append("auth", token)
                             }.build(),
                     )
                 }
@@ -168,7 +168,7 @@ suspend fun ApplicationCall.issueTokenOrRedirect(
             .withExpiresAt(Date(System.currentTimeMillis() + config.jwtExpiry * 60L * 60L * 1000L))
             .sign(Algorithm.HMAC256(config.jwtSecret))
     } catch (e: Exception) {
-        redirectAuthError(this, config.notFoundPage, "failed to issue token", e)
+        redirectAuthError(this, config.frontendRedirectUrl, "failed to issue token", e)
         null
     }
 
@@ -185,14 +185,14 @@ suspend inline fun <reified T : OAuthUserProfile> ApplicationCall.fetchAndUpsert
                     header(HttpHeaders.Authorization, "Bearer $accessToken")
                 }.body<T>()
         } catch (e: Exception) {
-            redirectAuthError(this, config.notFoundPage, "failed to fetch user info", e)
+            redirectAuthError(this, config.frontendRedirectUrl, "failed to fetch user info", e)
             return null
         }
 
     return try {
         userRepository.upsertUser(userInfo.toUserUpsertInput())
     } catch (e: Exception) {
-        redirectAuthError(this, config.notFoundPage, "failed to authorize", e)
+        redirectAuthError(this, config.frontendRedirectUrl, "failed to authorize", e)
         null
     }
 }
