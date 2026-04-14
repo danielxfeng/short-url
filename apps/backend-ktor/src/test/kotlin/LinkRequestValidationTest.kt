@@ -40,7 +40,7 @@ class LinkRequestValidationTest {
                         """
                         {
                           "code": "hello-world",
-                          "originalUrl": "https://example.com/page",
+                          "original_url": "https://example.com/page",
                           "note": "my note"
                         }
                         """.trimIndent(),
@@ -62,7 +62,7 @@ class LinkRequestValidationTest {
                         """
                         {
                           "code": "hello-world",
-                          "originalUrl": "https://example.com/page",
+                          "original_url": "https://example.com/page",
                           "note": null
                         }
                         """.trimIndent(),
@@ -84,7 +84,7 @@ class LinkRequestValidationTest {
                         """
                         {
                           "code": "hello-world",
-                          "originalUrl": "https://example.com/page"
+                          "original_url": "https://example.com/page"
                         }
                         """.trimIndent(),
                     )
@@ -104,7 +104,7 @@ class LinkRequestValidationTest {
                     setBody(
                         """
                         {
-                          "originalUrl": "https://example.com/page",
+                          "original_url": "https://example.com/page",
                           "note": "my note"
                         }
                         """.trimIndent(),
@@ -126,7 +126,7 @@ class LinkRequestValidationTest {
                         """
                         {
                           "code": "",
-                          "originalUrl": "https://example.com/page"
+                          "original_url": "https://example.com/page"
                         }
                         """.trimIndent(),
                     )
@@ -148,7 +148,7 @@ class LinkRequestValidationTest {
                         """
                         {
                           "code": "${"a".repeat(256)}",
-                          "originalUrl": "https://example.com/page"
+                          "original_url": "https://example.com/page"
                         }
                         """.trimIndent(),
                     )
@@ -170,7 +170,7 @@ class LinkRequestValidationTest {
                         """
                         {
                           "code": "hello_123",
-                          "originalUrl": "https://example.com/page"
+                          "original_url": "https://example.com/page"
                         }
                         """.trimIndent(),
                     )
@@ -192,7 +192,7 @@ class LinkRequestValidationTest {
                         """
                         {
                           "code": {},
-                          "originalUrl": "https://example.com/page"
+                          "original_url": "https://example.com/page"
                         }
                         """.trimIndent(),
                     )
@@ -214,7 +214,7 @@ class LinkRequestValidationTest {
                         """
                         {
                           "code": "hello-world",
-                          "originalUrl": "https://example.com/page",
+                          "original_url": "https://example.com/page",
                           "note": ""
                         }
                         """.trimIndent(),
@@ -237,7 +237,7 @@ class LinkRequestValidationTest {
                         """
                         {
                           "code": "hello-world",
-                          "originalUrl": "https://example.com/page",
+                          "original_url": "https://example.com/page",
                           "note": "${"a".repeat(256)}"
                         }
                         """.trimIndent(),
@@ -260,7 +260,7 @@ class LinkRequestValidationTest {
                         """
                         {
                           "code": "hello-world",
-                          "originalUrl": "https://example.com/page",
+                          "original_url": "https://example.com/page",
                           "note": {}
                         }
                         """.trimIndent(),
@@ -283,7 +283,7 @@ class LinkRequestValidationTest {
                         """
                         {
                           "code": "hello-world",
-                          "originalUrl": "ftp://example.com/file"
+                          "original_url": "ftp://example.com/file"
                         }
                         """.trimIndent(),
                     )
@@ -305,7 +305,7 @@ class LinkRequestValidationTest {
                         """
                         {
                           "code": "hello-world",
-                          "originalUrl": "http://localhost:8080/admin"
+                          "original_url": "http://localhost:8080/admin"
                         }
                         """.trimIndent(),
                     )
@@ -327,7 +327,7 @@ class LinkRequestValidationTest {
                         """
                         {
                           "code": "hello-world",
-                          "originalUrl": "http://192.168.1.10/private"
+                          "original_url": "http://192.168.1.10/private"
                         }
                         """.trimIndent(),
                     )
@@ -349,7 +349,7 @@ class LinkRequestValidationTest {
                         """
                         {
                           "code": "hello-world",
-                          "originalUrl": "http://[::1]/private"
+                          "original_url": "http://[::1]/private"
                         }
                         """.trimIndent(),
                     )
@@ -371,7 +371,7 @@ class LinkRequestValidationTest {
                         """
                         {
                           "code": "hello-world",
-                          "originalUrl": "https://printer.local/settings"
+                          "original_url": "https://printer.local/settings"
                         }
                         """.trimIndent(),
                     )
@@ -393,7 +393,7 @@ class LinkRequestValidationTest {
                         """
                         {
                           "code": "hello-world",
-                          "originalUrl": "https://service.internal/dashboard"
+                          "original_url": "https://service.internal/dashboard"
                         }
                         """.trimIndent(),
                     )
@@ -415,7 +415,7 @@ class LinkRequestValidationTest {
                         """
                         {
                           "code": "hello-world",
-                          "originalUrl": "https://gateway.home/"
+                          "original_url": "https://gateway.home/"
                         }
                         """.trimIndent(),
                     )
@@ -437,7 +437,7 @@ class LinkRequestValidationTest {
                         """
                         {
                           "code": "hello-world",
-                          "originalUrl": "https://nas.lan/"
+                          "original_url": "https://nas.lan/"
                         }
                         """.trimIndent(),
                     )
@@ -459,7 +459,7 @@ class LinkRequestValidationTest {
                         """
                         {
                           "code": "hello-world",
-                          "originalUrl": "https://user:pass@example.com/private"
+                          "original_url": "https://user:pass@example.com/private"
                         }
                         """.trimIndent(),
                     )
@@ -481,7 +481,7 @@ class LinkRequestValidationTest {
                         """
                         {
                           "code": "hello-world",
-                          "originalUrl": "http://0.1.2.3/private"
+                          "original_url": "http://0.1.2.3/private"
                         }
                         """.trimIndent(),
                     )
@@ -503,7 +503,7 @@ class LinkRequestValidationTest {
                         """
                         {
                           "code": "hello-world",
-                          "originalUrl": "http://100.64.1.1/private"
+                          "original_url": "http://100.64.1.1/private"
                         }
                         """.trimIndent(),
                     )
@@ -525,7 +525,7 @@ class LinkRequestValidationTest {
                         """
                         {
                           "code": "hello-world",
-                          "originalUrl": "http://198.18.0.1/private"
+                          "original_url": "http://198.18.0.1/private"
                         }
                         """.trimIndent(),
                     )
@@ -547,7 +547,7 @@ class LinkRequestValidationTest {
                         """
                         {
                           "code": "hello-world",
-                          "originalUrl": "http://224.0.0.1/private"
+                          "original_url": "http://224.0.0.1/private"
                         }
                         """.trimIndent(),
                     )
@@ -569,7 +569,7 @@ class LinkRequestValidationTest {
                         """
                         {
                           "code": "hello-world",
-                          "originalUrl": "http://[::]/private"
+                          "original_url": "http://[::]/private"
                         }
                         """.trimIndent(),
                     )
@@ -591,7 +591,7 @@ class LinkRequestValidationTest {
                         """
                         {
                           "code": "hello-world",
-                          "originalUrl": "http://[ff02::1]/private"
+                          "original_url": "http://[ff02::1]/private"
                         }
                         """.trimIndent(),
                     )
@@ -613,14 +613,14 @@ class LinkRequestValidationTest {
                         """
                         {
                           "code": "hello-world",
-                          "originalUrl": {}
+                          "original_url": {}
                         }
                         """.trimIndent(),
                     )
                 }
 
             assertEquals(HttpStatusCode.BadRequest, response.status)
-            assertTrue(response.bodyAsText().contains("originalUrl", ignoreCase = true))
+            assertTrue(response.bodyAsText().contains("original_url", ignoreCase = true))
         }
 
     @Test

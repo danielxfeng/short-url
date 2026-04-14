@@ -128,7 +128,7 @@ class UserRoutesTest {
                 }.apply {
                     assertEquals(HttpStatusCode.OK, status)
                     assertEquals(
-                        """{"id":1,"provider":"GOOGLE","providerId":"google-1","displayName":"Daniel","profilePicture":"https://example.com/a.png"}""",
+                        """{"id":1,"provider":"GOOGLE","provider_id":"google-1","display_name":"Daniel","profile_picture":"https://example.com/a.png"}""",
                         bodyAsText(),
                     )
                 }
