@@ -26,6 +26,9 @@
     "**/*.{ts,tsx,js,json,md,yml,yaml}": [
       "prettier --write --ignore-unknown"
     ],
+    "apps/backend-ktor/**/*.{kt,kts}": [
+      "sh -c 'cd apps/backend-ktor && ./gradlew ktlintFormat'"
+    ],
     "apps/backend-chi/**/*.go": [
       "cd apps/backend-chi && golangci-lint run --fix",
       "cd apps/backend-chi && gofmt -w ."

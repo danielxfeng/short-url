@@ -7,6 +7,5 @@ import kotlinx.serialization.Serializable
 data class LinkDeleteRequestDto(
     val code: String,
 ) {
-    fun toRepoParam(userId: Int): LinkDeleteInput =
-        LinkDeleteInput(userId, code)
+    fun toRepoParam(userId: Int): LinkDeleteInput = LinkDeleteInput(userId, code)
 }

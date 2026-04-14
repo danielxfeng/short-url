@@ -3,15 +3,19 @@ package dev.danielslab.shorturl.plugins
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import dev.danielslab.shorturl.config.Config
-import io.ktor.client.*
-import io.ktor.client.engine.apache5.*
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.auth.*
-import io.ktor.server.auth.jwt.*
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.apache5.Apache5
+import io.ktor.http.HttpMethod
+import io.ktor.server.application.Application
+import io.ktor.server.application.install
+import io.ktor.server.auth.Authentication
+import io.ktor.server.auth.OAuthServerSettings
+import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.jwt.jwt
+import io.ktor.server.auth.oauth
 
 fun Application.configureSecurity(config: Config) {
-    authentication {
+    install(Authentication) {
         jwt("auth-jwt") {
             realm = config.jwtRealm
             verifier(
@@ -19,14 +23,12 @@ fun Application.configureSecurity(config: Config) {
                     .require(Algorithm.HMAC256(config.jwtSecret))
                     .withAudience(config.jwtAudience)
                     .withIssuer(config.jwtDomain)
-                    .build()
+                    .build(),
             )
             validate { credential ->
                 if (credential.payload.audience.contains(config.jwtAudience)) JWTPrincipal(credential.payload) else null
             }
         }
-    }
-    authentication {
         oauth("auth-oauth-google") {
             urlProvider = { "${config.backendPublicUrl}/api/v1/user/auth/google/callback" }
             providerLookup = {

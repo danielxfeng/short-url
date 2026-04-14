@@ -209,6 +209,15 @@ pnpm -r run test
 
 This now includes `apps/backend-ktor` through its workspace wrapper scripts.
 
+For Kotlin linting and formatting:
+
+```bash
+pnpm --filter backend-ktor lint
+pnpm --filter backend-ktor format
+```
+
+Staged Kotlin files under `apps/backend-ktor` are also auto-formatted by the root Husky pre-commit hook.
+
 ## API Overview
 
 ### Public

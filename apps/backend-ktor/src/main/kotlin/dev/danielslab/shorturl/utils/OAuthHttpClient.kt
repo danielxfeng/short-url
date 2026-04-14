@@ -1,14 +1,15 @@
 package dev.danielslab.shorturl.utils
 
-import io.ktor.client.*
-import io.ktor.client.engine.apache5.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.serialization.kotlinx.json.*
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.apache5.Apache5
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.serialization.kotlinx.json.json
 
 object OAuthHttpClient {
-    val client: HttpClient = HttpClient(Apache5) {
-        install(ContentNegotiation) {
-            json()
+    val client: HttpClient =
+        HttpClient(Apache5) {
+            install(ContentNegotiation) {
+                json()
+            }
         }
-    }
 }

@@ -3,16 +3,16 @@ package dev.danielslab.shorturl
 import dev.danielslab.shorturl.config.Config
 import dev.danielslab.shorturl.db.exposed.DatabaseFactory
 import dev.danielslab.shorturl.db.exposed.DbExecutor
-import dev.danielslab.shorturl.plugins.configureRateLimiting
-import dev.danielslab.shorturl.plugins.configureRequestValidation
-import dev.danielslab.shorturl.plugins.configureStatusPages
 import dev.danielslab.shorturl.plugins.configureHTTP
 import dev.danielslab.shorturl.plugins.configureMonitoring
-import dev.danielslab.shorturl.routes.configureRouting
+import dev.danielslab.shorturl.plugins.configureRateLimiting
+import dev.danielslab.shorturl.plugins.configureRequestValidation
 import dev.danielslab.shorturl.plugins.configureSecurity
 import dev.danielslab.shorturl.plugins.configureSerialization
+import dev.danielslab.shorturl.plugins.configureStatusPages
 import dev.danielslab.shorturl.repository.pq.PqRepository
-import io.ktor.server.application.*
+import dev.danielslab.shorturl.routes.configureRouting
+import io.ktor.server.application.Application
 import io.ktor.server.netty.EngineMain
 
 fun main(args: Array<String>) {

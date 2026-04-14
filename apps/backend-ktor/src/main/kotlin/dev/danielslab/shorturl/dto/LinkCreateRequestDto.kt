@@ -8,7 +8,6 @@ data class LinkCreateRequestDto(
     val code: String,
     val originalUrl: String,
     val note: String? = null,
-){
-    fun toRepoParam(userId: Int): LinkCreateInput =
-        LinkCreateInput(userId, code, originalUrl, note)
+) {
+    fun toRepoParam(userId: Int): LinkCreateInput = LinkCreateInput(userId, code, originalUrl, note)
 }

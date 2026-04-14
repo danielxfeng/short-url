@@ -4,10 +4,11 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 
 enum class UserProvider {
-    GOOGLE, GITHUB
+    GOOGLE,
+    GITHUB,
 }
 
-data class User (
+data class User(
     val id: Int,
     val provider: UserProvider,
     val providerId: String,

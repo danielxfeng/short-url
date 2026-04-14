@@ -10,14 +10,16 @@ data class LinkListRequestDto(
         userId: Int,
         defaultPageSize: Int,
         maxPageSize: Int,
-    ): LinkListInput = LinkListInput(
-        userId = userId,
-        cursor = cursor,
-        limit = when {
-            limit == null -> defaultPageSize
-            limit < defaultPageSize -> defaultPageSize
-            limit > maxPageSize -> maxPageSize
-            else -> limit
-        },
-    )
+    ): LinkListInput =
+        LinkListInput(
+            userId = userId,
+            cursor = cursor,
+            limit =
+                when {
+                    limit == null -> defaultPageSize
+                    limit < defaultPageSize -> defaultPageSize
+                    limit > maxPageSize -> maxPageSize
+                    else -> limit
+                },
+        )
 }

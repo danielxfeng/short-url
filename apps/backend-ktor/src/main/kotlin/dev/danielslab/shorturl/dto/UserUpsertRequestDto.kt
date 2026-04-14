@@ -11,6 +11,5 @@ data class UserUpsertRequestDto(
     val displayName: String? = null,
     val profilePicture: String? = null,
 ) {
-    fun toRepoParam(): UserUpsertInput =
-        UserUpsertInput(provider, providerId, displayName, profilePicture)
+    fun toRepoParam(): UserUpsertInput = UserUpsertInput(provider, providerId, displayName, profilePicture)
 }

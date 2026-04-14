@@ -1,10 +1,12 @@
 package dev.danielslab.shorturl.plugins
 
 import dev.danielslab.shorturl.dto.ErrorResponse
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.plugins.statuspages.*
-import io.ktor.server.response.*
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.Application
+import io.ktor.server.application.install
+import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.plugins.statuspages.exception
+import io.ktor.server.response.respond
 
 fun Application.configureStatusPages() {
     install(StatusPages) {
@@ -30,7 +32,8 @@ fun Application.configureStatusPages() {
         }
 
         exception<Throwable> { call, applicationError ->
-            call.application.environment.log.error("Unhandled application error", applicationError)
+            call.application.environment.log
+                .error("Unhandled application error", applicationError)
             call.respond(
                 status = HttpStatusCode.InternalServerError,
                 message = ErrorResponse("Internal server error"),

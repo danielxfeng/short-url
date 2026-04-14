@@ -11,14 +11,15 @@ data class UserResponseDto(
     val providerId: String,
     val displayName: String? = null,
     val profilePicture: String? = null,
-){
+) {
     companion object {
-        fun fromDomain(user: User): UserResponseDto = UserResponseDto(
-            user.id,
-            user.provider,
-            user.providerId,
-            user.displayName,
-            user.profilePicture,
-        )
+        fun fromDomain(user: User): UserResponseDto =
+            UserResponseDto(
+                user.id,
+                user.provider,
+                user.providerId,
+                user.displayName,
+                user.profilePicture,
+            )
     }
 }

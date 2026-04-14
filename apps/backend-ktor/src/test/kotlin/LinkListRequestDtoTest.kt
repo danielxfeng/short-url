@@ -10,16 +10,18 @@ class LinkListRequestDtoTest {
 
     @Test
     fun `uses default page size when limit is omitted`() {
-        val request = LinkListRequestDto(
-            cursor = null,
-            limit = null,
-        )
+        val request =
+            LinkListRequestDto(
+                cursor = null,
+                limit = null,
+            )
 
-        val result = request.toRepoParam(
-            userId = 1,
-            defaultPageSize = defaultPageSize,
-            maxPageSize = maxPageSize,
-        )
+        val result =
+            request.toRepoParam(
+                userId = 1,
+                defaultPageSize = defaultPageSize,
+                maxPageSize = maxPageSize,
+            )
 
         assertEquals(1, result.userId)
         assertEquals(null, result.cursor)
@@ -28,16 +30,18 @@ class LinkListRequestDtoTest {
 
     @Test
     fun `keeps in-range limit`() {
-        val request = LinkListRequestDto(
-            cursor = "cursor-1",
-            limit = 50,
-        )
+        val request =
+            LinkListRequestDto(
+                cursor = "cursor-1",
+                limit = 50,
+            )
 
-        val result = request.toRepoParam(
-            userId = 1,
-            defaultPageSize = defaultPageSize,
-            maxPageSize = maxPageSize,
-        )
+        val result =
+            request.toRepoParam(
+                userId = 1,
+                defaultPageSize = defaultPageSize,
+                maxPageSize = maxPageSize,
+            )
 
         assertEquals(1, result.userId)
         assertEquals("cursor-1", result.cursor)
@@ -46,32 +50,36 @@ class LinkListRequestDtoTest {
 
     @Test
     fun `raises too-small limit to default page size`() {
-        val request = LinkListRequestDto(
-            cursor = "cursor-1",
-            limit = 5,
-        )
+        val request =
+            LinkListRequestDto(
+                cursor = "cursor-1",
+                limit = 5,
+            )
 
-        val result = request.toRepoParam(
-            userId = 1,
-            defaultPageSize = defaultPageSize,
-            maxPageSize = maxPageSize,
-        )
+        val result =
+            request.toRepoParam(
+                userId = 1,
+                defaultPageSize = defaultPageSize,
+                maxPageSize = maxPageSize,
+            )
 
         assertEquals(20, result.limit)
     }
 
     @Test
     fun `caps too-large limit at max page size`() {
-        val request = LinkListRequestDto(
-            cursor = "cursor-1",
-            limit = 200,
-        )
+        val request =
+            LinkListRequestDto(
+                cursor = "cursor-1",
+                limit = 200,
+            )
 
-        val result = request.toRepoParam(
-            userId = 1,
-            defaultPageSize = defaultPageSize,
-            maxPageSize = maxPageSize,
-        )
+        val result =
+            request.toRepoParam(
+                userId = 1,
+                defaultPageSize = defaultPageSize,
+                maxPageSize = maxPageSize,
+            )
 
         assertEquals(100, result.limit)
     }

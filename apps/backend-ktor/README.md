@@ -51,14 +51,18 @@ To build or run the project, use one of the following tasks:
 
 This app is also exposed through the workspace `pnpm` setup so CI and local commands can use the same entrypoints as the other apps:
 
-| Task                                              | Description                           |
-| ------------------------------------------------- | ------------------------------------- |
-| `pnpm --filter backend-ktor test`                 | Run tests                             |
-| `pnpm --filter backend-ktor build`                | Build the application                 |
-| `pnpm --filter backend-ktor start`                | Run the Ktor server locally           |
-| `pnpm --filter backend-ktor jar`                  | Build the executable fat JAR          |
-| `pnpm --filter backend-ktor docker:build`         | Build the container image             |
-| `pnpm --filter backend-ktor docker:publish:local` | Publish the image to a local registry |
+| Task                                              | Description                            |
+| ------------------------------------------------- | -------------------------------------- |
+| `pnpm --filter backend-ktor test`                 | Run tests                              |
+| `pnpm --filter backend-ktor lint`                 | Run ktlint checks                      |
+| `pnpm --filter backend-ktor format`               | Auto-format Kotlin sources with ktlint |
+| `pnpm --filter backend-ktor build`                | Build the application                  |
+| `pnpm --filter backend-ktor start`                | Run the Ktor server locally            |
+| `pnpm --filter backend-ktor jar`                  | Build the executable fat JAR           |
+| `pnpm --filter backend-ktor docker:build`         | Build the container image              |
+| `pnpm --filter backend-ktor docker:publish:local` | Publish the image to a local registry  |
+
+The repository root Husky pre-commit hook runs `lint-staged`, which now auto-formats staged Kotlin files in `apps/backend-ktor` with `ktlintFormat`.
 
 ## CI And Deploy
 

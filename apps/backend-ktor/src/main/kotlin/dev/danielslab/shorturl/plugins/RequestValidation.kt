@@ -3,8 +3,10 @@ package dev.danielslab.shorturl.plugins
 import dev.danielslab.shorturl.dto.LinkCreateRequestDto
 import dev.danielslab.shorturl.dto.LinkDeleteRequestDto
 import dev.danielslab.shorturl.dto.UserUpsertRequestDto
-import io.ktor.server.application.*
-import io.ktor.server.plugins.requestvalidation.*
+import io.ktor.server.application.Application
+import io.ktor.server.application.install
+import io.ktor.server.plugins.requestvalidation.RequestValidation
+import io.ktor.server.plugins.requestvalidation.ValidationResult
 import java.net.URI
 
 fun Application.configureRequestValidation() {

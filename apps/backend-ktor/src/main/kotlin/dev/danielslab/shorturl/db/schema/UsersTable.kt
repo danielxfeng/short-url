@@ -9,12 +9,13 @@ import org.jetbrains.exposed.sql.javatime.timestampWithTimeZone
 
 object UsersTable : Table("users") {
     val id = integer("id").autoIncrement()
-    val provider : Column<UserProvider> = customEnumeration(
-        name = "provider",
-        sql = "provider_enum",
-        fromDb = { value -> UserProvider.valueOf(value as String ) },
-        toDb = { PgEnum("provider_enum", it) },
-    )
+    val provider: Column<UserProvider> =
+        customEnumeration(
+            name = "provider",
+            sql = "provider_enum",
+            fromDb = { value -> UserProvider.valueOf(value as String) },
+            toDb = { PgEnum("provider_enum", it) },
+        )
     val providerId = text("provider_id")
     val displayName = text("display_name").nullable()
     val profilePic = text("profile_pic").nullable()

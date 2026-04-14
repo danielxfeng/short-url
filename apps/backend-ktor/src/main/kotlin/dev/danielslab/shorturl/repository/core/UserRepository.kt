@@ -12,6 +12,8 @@ data class UserUpsertInput(
 
 interface UserRepository {
     suspend fun getUserById(id: Int): User?
+
     suspend fun deleteUserById(id: Int)
+
     suspend fun upsertUser(userInput: UserUpsertInput): User
 }

@@ -4,9 +4,11 @@
   "version": "1.0.0",
   "description": "Ktor backend scripts exposed through the pnpm workspace",
   "scripts": {
+    "lint": "./gradlew ktlintCheck",
+    "format": "./gradlew ktlintFormat",
     "test": "./gradlew test",
     "build": "./gradlew build",
-    "precommit": "pnpm run test && pnpm run build",
+    "precommit": "pnpm run lint && pnpm run test && pnpm run build",
     "start": "./gradlew run",
     "jar": "./gradlew buildFatJar",
     "docker:build": "./gradlew buildImage",

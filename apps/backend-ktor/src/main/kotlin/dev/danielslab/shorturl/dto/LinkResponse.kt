@@ -13,15 +13,16 @@ data class LinkResponse(
     val isDeleted: Boolean,
 ) {
     companion object {
-        fun fromDomain(link: Link): LinkResponse = LinkResponse(
-            link.id,
-            link.userId,
-            link.code,
-            link.originalUrl,
-            link.clicks,
-            link.note,
-            link.createdAt.toString(),
-            link.deletedAt != null,
-        )
+        fun fromDomain(link: Link): LinkResponse =
+            LinkResponse(
+                link.id,
+                link.userId,
+                link.code,
+                link.originalUrl,
+                link.clicks,
+                link.note,
+                link.createdAt.toString(),
+                link.deletedAt != null,
+            )
     }
 }

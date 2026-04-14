@@ -24,67 +24,74 @@ class PqRepositoryTest {
     private val testContext = TestContext
 
     @BeforeTest
-    fun resetDb() = runBlocking {
-        testContext.resetDb()
-    }
+    fun resetDb() =
+        runBlocking {
+            testContext.resetDb()
+        }
 
     @Test
-    fun `getUserById returns null when user is missing`() = runBlocking {
-        assertNull(testContext.repository.getUserById(1))
-    }
+    fun `getUserById returns null when user is missing`() =
+        runBlocking {
+            assertNull(testContext.repository.getUserById(1))
+        }
 
     @Test
-    fun `upsertUser inserts when user does not exist`() = runBlocking {
-        val user = testContext.repository.upsertUser(
-            UserUpsertInput(
+    fun `upsertUser inserts when user does not exist`() =
+        runBlocking {
+            val user =
+                testContext.repository.upsertUser(
+                    UserUpsertInput(
+                        provider = UserProvider.GOOGLE,
+                        providerId = "google-1",
+                        displayName = "Daniel",
+                        profilePicture = "https://example.com/a.png",
+                    ),
+                )
+
+            assertEquals(1, user.id)
+            assertEquals(UserProvider.GOOGLE, user.provider)
+            assertEquals("google-1", user.providerId)
+            assertEquals("Daniel", user.displayName)
+            assertEquals("https://example.com/a.png", user.profilePicture)
+            assertEquals(1, testContext.countUsers())
+        }
+
+    @Test
+    fun `upsertUser updates existing user without creating duplicate row`() =
+        runBlocking {
+            seedUser(
                 provider = UserProvider.GOOGLE,
                 providerId = "google-1",
-                displayName = "Daniel",
+                displayName = "Before",
                 profilePicture = "https://example.com/a.png",
             )
-        )
 
-        assertEquals(1, user.id)
-        assertEquals(UserProvider.GOOGLE, user.provider)
-        assertEquals("google-1", user.providerId)
-        assertEquals("Daniel", user.displayName)
-        assertEquals("https://example.com/a.png", user.profilePicture)
-        assertEquals(1, testContext.countUsers())
-    }
+            val user =
+                testContext.repository.upsertUser(
+                    UserUpsertInput(
+                        provider = UserProvider.GOOGLE,
+                        providerId = "google-1",
+                        displayName = "After",
+                        profilePicture = "https://example.com/b.png",
+                    ),
+                )
 
-    @Test
-    fun `upsertUser updates existing user without creating duplicate row`() = runBlocking {
-        seedUser(
-            provider = UserProvider.GOOGLE,
-            providerId = "google-1",
-            displayName = "Before",
-            profilePicture = "https://example.com/a.png",
-        )
-
-        val user = testContext.repository.upsertUser(
-            UserUpsertInput(
-                provider = UserProvider.GOOGLE,
-                providerId = "google-1",
-                displayName = "After",
-                profilePicture = "https://example.com/b.png",
-            )
-        )
-
-        assertEquals(1, user.id)
-        assertEquals("After", user.displayName)
-        assertEquals("https://example.com/b.png", user.profilePicture)
-        assertEquals(1, testContext.countUsers())
-    }
+            assertEquals(1, user.id)
+            assertEquals("After", user.displayName)
+            assertEquals("https://example.com/b.png", user.profilePicture)
+            assertEquals(1, testContext.countUsers())
+        }
 
     @Test
-    fun `deleteUserById deletes existing user`() = runBlocking {
-        seedUser()
+    fun `deleteUserById deletes existing user`() =
+        runBlocking {
+            seedUser()
 
-        testContext.repository.deleteUserById(1)
+            testContext.repository.deleteUserById(1)
 
-        assertNull(testContext.repository.getUserById(1))
-        assertEquals(0, testContext.countUsers())
-    }
+            assertNull(testContext.repository.getUserById(1))
+            assertEquals(0, testContext.countUsers())
+        }
 
     @Test
     fun `deleteUserById throws not found when user is missing`() {
@@ -96,45 +103,49 @@ class PqRepositoryTest {
     }
 
     @Test
-    fun `createLink creates active link with note`() = runBlocking {
-        seedUser()
+    fun `createLink creates active link with note`() =
+        runBlocking {
+            seedUser()
 
-        val link = testContext.repository.createLink(
-            LinkCreateInput(
-                userId = 1,
-                code = "with-note",
-                originalUrl = "https://example.com/with-note",
-                note = "note",
-            )
-        )
+            val link =
+                testContext.repository.createLink(
+                    LinkCreateInput(
+                        userId = 1,
+                        code = "with-note",
+                        originalUrl = "https://example.com/with-note",
+                        note = "note",
+                    ),
+                )
 
-        assertEquals(1, link.id)
-        assertEquals(1, link.userId)
-        assertEquals("with-note", link.code)
-        assertEquals("https://example.com/with-note", link.originalUrl)
-        assertEquals("note", link.note)
-        assertEquals(0, link.clicks)
-        assertNull(link.deletedAt)
-    }
+            assertEquals(1, link.id)
+            assertEquals(1, link.userId)
+            assertEquals("with-note", link.code)
+            assertEquals("https://example.com/with-note", link.originalUrl)
+            assertEquals("note", link.note)
+            assertEquals(0, link.clicks)
+            assertNull(link.deletedAt)
+        }
 
     @Test
-    fun `createLink creates active link without note`() = runBlocking {
-        seedUser()
+    fun `createLink creates active link without note`() =
+        runBlocking {
+            seedUser()
 
-        val link = testContext.repository.createLink(
-            LinkCreateInput(
-                userId = 1,
-                code = "without-note",
-                originalUrl = "https://example.com/without-note",
-                note = null,
-            )
-        )
+            val link =
+                testContext.repository.createLink(
+                    LinkCreateInput(
+                        userId = 1,
+                        code = "without-note",
+                        originalUrl = "https://example.com/without-note",
+                        note = null,
+                    ),
+                )
 
-        assertEquals("without-note", link.code)
-        assertNull(link.note)
-        assertEquals(0, link.clicks)
-        assertNull(link.deletedAt)
-    }
+            assertEquals("without-note", link.code)
+            assertNull(link.note)
+            assertEquals(0, link.clicks)
+            assertNull(link.deletedAt)
+        }
 
     @Test
     fun `createLink throws duplicated when code already exists`() {
@@ -145,7 +156,7 @@ class PqRepositoryTest {
                     userId = 1,
                     code = "dup",
                     originalUrl = "https://example.com/a",
-                )
+                ),
             )
 
             assertFailsWith<DuplicatedException> {
@@ -154,23 +165,24 @@ class PqRepositoryTest {
                         userId = 1,
                         code = "dup",
                         originalUrl = "https://example.com/b",
-                    )
+                    ),
                 )
             }
         }
     }
 
     @Test
-    fun `getLinkByCode returns active link and null when missing`() = runBlocking {
-        seedUser()
-        val created = seedLink(code = "hello")
+    fun `getLinkByCode returns active link and null when missing`() =
+        runBlocking {
+            seedUser()
+            val created = seedLink(code = "hello")
 
-        val found = testContext.repository.getLinkByCode("hello")
+            val found = testContext.repository.getLinkByCode("hello")
 
-        assertNotNull(found)
-        assertEquals(created.id, found.id)
-        assertNull(testContext.repository.getLinkByCode("missing"))
-    }
+            assertNotNull(found)
+            assertEquals(created.id, found.id)
+            assertNull(testContext.repository.getLinkByCode("missing"))
+        }
 
     @Test
     fun `getLinkByCode returns null when link is soft deleted and getLinkByCodeWithDeleted still returns it`() {
@@ -189,27 +201,31 @@ class PqRepositoryTest {
     }
 
     @Test
-    fun `getLinksByUserId returns newest first, respects limit, and paginates by id cursor`() = runBlocking {
-        seedUser()
-        repeat(5) { index ->
-            seedLink(code = "code-${index + 1}", originalUrl = "https://example.com/${index + 1}")
+    fun `getLinksByUserId returns newest first, respects limit, and paginates by id cursor`() =
+        runBlocking {
+            seedUser()
+            repeat(5) { index ->
+                seedLink(code = "code-${index + 1}", originalUrl = "https://example.com/${index + 1}")
+            }
+
+            val firstPage =
+                testContext.repository.getLinksByUserId(
+                    LinkListInput(userId = 1, cursor = null, limit = 2),
+                )
+            assertEquals(listOf(5, 4), firstPage.map { it.id })
+
+            val secondPage =
+                testContext.repository.getLinksByUserId(
+                    LinkListInput(userId = 1, cursor = firstPage.last().id.toString(), limit = 2),
+                )
+            assertEquals(listOf(3, 2), secondPage.map { it.id })
+
+            val thirdPage =
+                testContext.repository.getLinksByUserId(
+                    LinkListInput(userId = 1, cursor = secondPage.last().id.toString(), limit = 2),
+                )
+            assertEquals(listOf(1), thirdPage.map { it.id })
         }
-
-        val firstPage = testContext.repository.getLinksByUserId(
-            LinkListInput(userId = 1, cursor = null, limit = 2)
-        )
-        assertEquals(listOf(5, 4), firstPage.map { it.id })
-
-        val secondPage = testContext.repository.getLinksByUserId(
-            LinkListInput(userId = 1, cursor = firstPage.last().id.toString(), limit = 2)
-        )
-        assertEquals(listOf(3, 2), secondPage.map { it.id })
-
-        val thirdPage = testContext.repository.getLinksByUserId(
-            LinkListInput(userId = 1, cursor = secondPage.last().id.toString(), limit = 2)
-        )
-        assertEquals(listOf(1), thirdPage.map { it.id })
-    }
 
     @Test
     fun `getLinksByUserId includes soft deleted rows and only returns current user rows`() {
@@ -221,7 +237,7 @@ class PqRepositoryTest {
                     providerId = "github-2",
                     displayName = "Other",
                     profilePicture = null,
-                )
+                ),
             )
 
             seedLink(userId = 1, code = "active-1")
@@ -229,9 +245,10 @@ class PqRepositoryTest {
             seedLink(userId = 2, code = "other-user")
             testContext.repository.softDeleteLinkById(LinkDeleteInput(userId = 1, code = "deleted-1"))
 
-            val links = testContext.repository.getLinksByUserId(
-                LinkListInput(userId = 1, cursor = null, limit = 10)
-            )
+            val links =
+                testContext.repository.getLinksByUserId(
+                    LinkListInput(userId = 1, cursor = null, limit = 10),
+                )
 
             assertEquals(listOf("deleted-1", "active-1"), links.map { it.code })
             assertNotNull(links.first().deletedAt)
@@ -239,15 +256,17 @@ class PqRepositoryTest {
     }
 
     @Test
-    fun `getLinksByUserId returns empty list when user has no links`() = runBlocking {
-        seedUser()
+    fun `getLinksByUserId returns empty list when user has no links`() =
+        runBlocking {
+            seedUser()
 
-        val links = testContext.repository.getLinksByUserId(
-            LinkListInput(userId = 1, cursor = null, limit = 10)
-        )
+            val links =
+                testContext.repository.getLinksByUserId(
+                    LinkListInput(userId = 1, cursor = null, limit = 10),
+                )
 
-        assertEquals(emptyList(), links)
-    }
+            assertEquals(emptyList(), links)
+        }
 
     @Test
     fun `softDeleteLinkById soft deletes active link`() {
@@ -280,17 +299,18 @@ class PqRepositoryTest {
     }
 
     @Test
-    fun `restoreLinkById restores deleted link`() = runBlocking {
-        seedUser()
-        seedLink(code = "restore-me")
-        testContext.repository.softDeleteLinkById(LinkDeleteInput(userId = 1, code = "restore-me"))
+    fun `restoreLinkById restores deleted link`() =
+        runBlocking {
+            seedUser()
+            seedLink(code = "restore-me")
+            testContext.repository.softDeleteLinkById(LinkDeleteInput(userId = 1, code = "restore-me"))
 
-        testContext.repository.restoreLinkById(LinkDeleteInput(userId = 1, code = "restore-me"))
+            testContext.repository.restoreLinkById(LinkDeleteInput(userId = 1, code = "restore-me"))
 
-        val link = testContext.repository.getLinkByCode("restore-me")
-        assertNotNull(link)
-        assertNull(link.deletedAt)
-    }
+            val link = testContext.repository.getLinkByCode("restore-me")
+            assertNotNull(link)
+            assertNull(link.deletedAt)
+        }
 
     @Test
     fun `restoreLinkById throws not found when link is missing or active`() {
@@ -308,15 +328,16 @@ class PqRepositoryTest {
     }
 
     @Test
-    fun `permanentlyDeleteLinkById deletes deleted link only`() = runBlocking {
-        seedUser()
-        seedLink(code = "hard-delete")
-        testContext.repository.softDeleteLinkById(LinkDeleteInput(userId = 1, code = "hard-delete"))
+    fun `permanentlyDeleteLinkById deletes deleted link only`() =
+        runBlocking {
+            seedUser()
+            seedLink(code = "hard-delete")
+            testContext.repository.softDeleteLinkById(LinkDeleteInput(userId = 1, code = "hard-delete"))
 
-        testContext.repository.permanentlyDeleteLinkById(LinkDeleteInput(userId = 1, code = "hard-delete"))
+            testContext.repository.permanentlyDeleteLinkById(LinkDeleteInput(userId = 1, code = "hard-delete"))
 
-        assertNull(testContext.repository.getLinkByCodeWithDeleted("hard-delete"))
-    }
+            assertNull(testContext.repository.getLinkByCodeWithDeleted("hard-delete"))
+        }
 
     @Test
     fun `permanentlyDeleteLinkById throws not found when link is missing or active`() {
@@ -334,13 +355,14 @@ class PqRepositoryTest {
     }
 
     @Test
-    fun `setLinkClicked increments active link and returns updated count`() = runBlocking {
-        seedUser()
-        seedLink(code = "click-me")
+    fun `setLinkClicked increments active link and returns updated count`() =
+        runBlocking {
+            seedUser()
+            seedLink(code = "click-me")
 
-        assertEquals(1, testContext.repository.setLinkClicked("click-me"))
-        assertEquals(2, testContext.repository.setLinkClicked("click-me"))
-    }
+            assertEquals(1, testContext.repository.setLinkClicked("click-me"))
+            assertEquals(2, testContext.repository.setLinkClicked("click-me"))
+        }
 
     @Test
     fun `setLinkClicked throws not found for missing or soft deleted link`() {
@@ -370,7 +392,7 @@ class PqRepositoryTest {
                 providerId = providerId,
                 displayName = displayName,
                 profilePicture = profilePicture,
-            )
+            ),
         )
     }
 
@@ -385,13 +407,15 @@ class PqRepositoryTest {
             code = code,
             originalUrl = originalUrl,
             note = note,
-        )
+        ),
     )
 
     private object TestContext {
-        private val dotenv: Dotenv = Dotenv.configure()
-            .ignoreIfMissing()
-            .load()
+        private val dotenv: Dotenv =
+            Dotenv
+                .configure()
+                .ignoreIfMissing()
+                .load()
         private val database = DatabaseFactory().connect(testDbUrl())
         private val dbExecutor = DbExecutor(database)
 
@@ -403,11 +427,12 @@ class PqRepositoryTest {
             }
         }
 
-        suspend fun countUsers(): Int = dbExecutor.query {
-            TransactionManager.current().exec("SELECT COUNT(*) FROM users") { resultSet ->
-                if (resultSet.next()) resultSet.getInt(1) else 0
-            } ?: 0
-        }
+        suspend fun countUsers(): Int =
+            dbExecutor.query {
+                TransactionManager.current().exec("SELECT COUNT(*) FROM users") { resultSet ->
+                    if (resultSet.next()) resultSet.getInt(1) else 0
+                } ?: 0
+            }
 
         private fun testDbUrl(): String =
             System.getenv("TEST_DB_URL")

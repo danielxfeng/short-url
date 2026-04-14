@@ -12,16 +12,17 @@ class LinkResponseTest {
     @Test
     fun `maps non-deleted link to response with iso createdAt`() {
         val createdAt = Instant.parse("2026-04-13T10:15:30Z")
-        val link = Link(
-            id = 1,
-            userId = 1,
-            code = "abc123",
-            originalUrl = "https://example.com",
-            clicks = 7,
-            note = "note",
-            createdAt = createdAt,
-            deletedAt = null,
-        )
+        val link =
+            Link(
+                id = 1,
+                userId = 1,
+                code = "abc123",
+                originalUrl = "https://example.com",
+                clicks = 7,
+                note = "note",
+                createdAt = createdAt,
+                deletedAt = null,
+            )
 
         val response = LinkResponse.fromDomain(link)
 
@@ -39,16 +40,17 @@ class LinkResponseTest {
     fun `maps deleted link to response with isDeleted true`() {
         val createdAt = Instant.parse("2026-04-13T10:15:30Z")
         val deletedAt = Instant.parse("2026-04-14T10:15:30Z")
-        val link = Link(
-            id = 2,
-            userId = 2,
-            code = "xyz789",
-            originalUrl = "https://example.org",
-            clicks = 0,
-            note = null,
-            createdAt = createdAt,
-            deletedAt = deletedAt,
-        )
+        val link =
+            Link(
+                id = 2,
+                userId = 2,
+                code = "xyz789",
+                originalUrl = "https://example.org",
+                clicks = 0,
+                note = null,
+                createdAt = createdAt,
+                deletedAt = deletedAt,
+            )
 
         val response = LinkResponse.fromDomain(link)
 
