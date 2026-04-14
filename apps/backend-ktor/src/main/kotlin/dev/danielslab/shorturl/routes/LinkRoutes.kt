@@ -97,7 +97,7 @@ fun Route.linkRoutes(
                 LinksResponseDto(
                     links = page.map { it.toResponse() },
                     hasMore = links.size > request.limit,
-                    cursor = page.lastOrNull()?.id?.toString(),
+                    cursor = page.lastOrNull()?.id,
                 ),
             )
         }

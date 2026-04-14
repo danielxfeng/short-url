@@ -12,6 +12,6 @@ data class UserResponseDto(
     val providerId: String,
     @SerialName("display_name")
     val displayName: String? = null,
-    @SerialName("profile_picture")
+    @SerialName("profile_pic")
     val profilePicture: String? = null,
 )

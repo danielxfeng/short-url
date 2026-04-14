@@ -252,7 +252,7 @@ class LinkRoutesTest {
                     val links = body["links"]!!.jsonArray
 
                     assertEquals(false, body["has_more"]!!.jsonPrimitive.boolean)
-                    assertEquals("1", body["cursor"]!!.jsonPrimitive.content)
+                    assertEquals(1, body["cursor"]!!.jsonPrimitive.int)
                     assertEquals(19, links.size)
                     assertEquals(
                         19,
@@ -313,7 +313,7 @@ class LinkRoutesTest {
                     val links = body["links"]!!.jsonArray
 
                     assertEquals(false, body["has_more"]!!.jsonPrimitive.boolean)
-                    assertEquals("1", body["cursor"]!!.jsonPrimitive.content)
+                    assertEquals(1, body["cursor"]!!.jsonPrimitive.int)
                     assertEquals(20, links.size)
                     assertEquals(
                         20,
@@ -374,7 +374,7 @@ class LinkRoutesTest {
                     val links = body["links"]!!.jsonArray
 
                     assertEquals(true, body["has_more"]!!.jsonPrimitive.boolean)
-                    assertEquals("2", body["cursor"]!!.jsonPrimitive.content)
+                    assertEquals(2, body["cursor"]!!.jsonPrimitive.int)
                     assertEquals(20, links.size)
                     assertEquals(
                         21,

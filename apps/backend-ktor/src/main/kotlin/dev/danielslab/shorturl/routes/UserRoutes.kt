@@ -57,7 +57,7 @@ fun Route.userRoutes(
                     val principal =
                         call.principal<OAuthAccessTokenResponse.OAuth2>()
                             ?: run {
-                                redirectAuthError(call, config.notFoundPage, "failed to get token from google")
+                                redirectAuthError(call, config.frontendRedirectUrl, "failed to get token from google")
                                 return@get
                             }
 
@@ -89,7 +89,7 @@ fun Route.userRoutes(
                     val principal =
                         call.principal<OAuthAccessTokenResponse.OAuth2>()
                             ?: run {
-                                redirectAuthError(call, config.notFoundPage, "failed to get token from github")
+                                redirectAuthError(call, config.frontendRedirectUrl, "failed to get token from github")
                                 return@get
                             }
 

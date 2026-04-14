@@ -8,5 +8,5 @@ data class LinksResponseDto(
     val links: List<LinkResponseDto>,
     @SerialName("has_more")
     val hasMore: Boolean,
-    val cursor: String?,
+    val cursor: Int?,
 )
