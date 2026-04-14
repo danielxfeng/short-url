@@ -29,6 +29,12 @@ import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withTimeout
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.util.Date
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -175,32 +181,10 @@ class LinkRoutesTest {
         }
 
     @Test
-    fun `list short urls returns links with default pagination`() =
+    fun `list short urls returns empty page`() =
         testApplication {
             val config = testConfig()
             val repository = FakeLinkRepository()
-            repository.linksToList =
-                listOf(
-                    Link(
-                        id = 2,
-                        userId = 7,
-                        code = "two",
-                        originalUrl = "https://example.com/two",
-                        clicks = 5,
-                        note = null,
-                        createdAt = Instant.parse("2024-01-02T00:00:00Z"),
-                    ),
-                    Link(
-                        id = 1,
-                        userId = 7,
-                        code = "one",
-                        originalUrl = "https://example.com/one",
-                        clicks = 0,
-                        note = "first",
-                        createdAt = Instant.parse("2024-01-01T00:00:00Z"),
-                        deletedAt = Instant.parse("2024-01-03T00:00:00Z"),
-                    ),
-                )
 
             application {
                 configureSecurity(config)
@@ -220,12 +204,195 @@ class LinkRoutesTest {
                 }.apply {
                     assertEquals(HttpStatusCode.OK, status)
                     assertEquals(
-                        """[{"id":2,"userId":7,"code":"two","originalUrl":"https://example.com/two","clicks":5,"note":null,"createdAt":"2024-01-02T00:00:00Z","isDeleted":false},{"id":1,"userId":7,"code":"one","originalUrl":"https://example.com/one","clicks":0,"note":"first","createdAt":"2024-01-01T00:00:00Z","isDeleted":true}]""",
+                        """{"links":[],"hasMore":false,"cursor":null}""",
                         bodyAsText(),
                     )
                 }
 
-            assertEquals(LinkListInput(userId = 7, cursor = null, limit = 20), repository.lastListInput)
+            assertEquals(LinkListInput(userId = 7, cursor = null, limit = 21), repository.lastListInput)
+        }
+
+    @Test
+    fun `list short urls returns page when result count is less than limit`() =
+        testApplication {
+            val config = testConfig()
+            val repository = FakeLinkRepository()
+            repository.linksToList =
+                List(19) { index ->
+                    val id = 19 - index
+                    Link(
+                        id = id,
+                        userId = 7,
+                        code = "code-$id",
+                        originalUrl = "https://example.com/$id",
+                        clicks = index,
+                        note = null,
+                        createdAt = Instant.parse("2024-01-01T00:00:00Z"),
+                    )
+                }
+
+            application {
+                configureSecurity(config)
+                configureSerialization()
+                configureRequestValidation()
+                configureStatusPages()
+                routing {
+                    route("/api/v1/short-urls") {
+                        linkRoutes(config, repository)
+                    }
+                }
+            }
+
+            client
+                .get("/api/v1/short-urls") {
+                    bearerAuth(issueTestToken(7, config))
+                }.apply {
+                    assertEquals(HttpStatusCode.OK, status)
+                    val body = Json.parseToJsonElement(bodyAsText()).jsonObject
+                    val links = body["links"]!!.jsonArray
+
+                    assertEquals(false, body["hasMore"]!!.jsonPrimitive.boolean)
+                    assertEquals("1", body["cursor"]!!.jsonPrimitive.content)
+                    assertEquals(19, links.size)
+                    assertEquals(
+                        19,
+                        links
+                            .first()
+                            .jsonObject["id"]!!
+                            .jsonPrimitive.int,
+                    )
+                    assertEquals(
+                        1,
+                        links
+                            .last()
+                            .jsonObject["id"]!!
+                            .jsonPrimitive.int,
+                    )
+                }
+
+            assertEquals(LinkListInput(userId = 7, cursor = null, limit = 21), repository.lastListInput)
+        }
+
+    @Test
+    fun `list short urls returns page when result count equals limit`() =
+        testApplication {
+            val config = testConfig()
+            val repository = FakeLinkRepository()
+            repository.linksToList =
+                List(20) { index ->
+                    val id = 20 - index
+                    Link(
+                        id = id,
+                        userId = 7,
+                        code = "code-$id",
+                        originalUrl = "https://example.com/$id",
+                        clicks = index,
+                        note = null,
+                        createdAt = Instant.parse("2024-01-01T00:00:00Z"),
+                    )
+                }
+
+            application {
+                configureSecurity(config)
+                configureSerialization()
+                configureRequestValidation()
+                configureStatusPages()
+                routing {
+                    route("/api/v1/short-urls") {
+                        linkRoutes(config, repository)
+                    }
+                }
+            }
+
+            client
+                .get("/api/v1/short-urls") {
+                    bearerAuth(issueTestToken(7, config))
+                }.apply {
+                    assertEquals(HttpStatusCode.OK, status)
+                    val body = Json.parseToJsonElement(bodyAsText()).jsonObject
+                    val links = body["links"]!!.jsonArray
+
+                    assertEquals(false, body["hasMore"]!!.jsonPrimitive.boolean)
+                    assertEquals("1", body["cursor"]!!.jsonPrimitive.content)
+                    assertEquals(20, links.size)
+                    assertEquals(
+                        20,
+                        links
+                            .first()
+                            .jsonObject["id"]!!
+                            .jsonPrimitive.int,
+                    )
+                    assertEquals(
+                        1,
+                        links
+                            .last()
+                            .jsonObject["id"]!!
+                            .jsonPrimitive.int,
+                    )
+                }
+
+            assertEquals(LinkListInput(userId = 7, cursor = null, limit = 21), repository.lastListInput)
+        }
+
+    @Test
+    fun `list short urls returns page with hasMore when result count exceeds limit`() =
+        testApplication {
+            val config = testConfig()
+            val repository = FakeLinkRepository()
+            repository.linksToList =
+                List(21) { index ->
+                    val id = 21 - index
+                    Link(
+                        id = id,
+                        userId = 7,
+                        code = "code-$id",
+                        originalUrl = "https://example.com/$id",
+                        clicks = index,
+                        note = null,
+                        createdAt = Instant.parse("2024-01-01T00:00:00Z"),
+                    )
+                }
+
+            application {
+                configureSecurity(config)
+                configureSerialization()
+                configureRequestValidation()
+                configureStatusPages()
+                routing {
+                    route("/api/v1/short-urls") {
+                        linkRoutes(config, repository)
+                    }
+                }
+            }
+
+            client
+                .get("/api/v1/short-urls") {
+                    bearerAuth(issueTestToken(7, config))
+                }.apply {
+                    assertEquals(HttpStatusCode.OK, status)
+                    val body = Json.parseToJsonElement(bodyAsText()).jsonObject
+                    val links = body["links"]!!.jsonArray
+
+                    assertEquals(true, body["hasMore"]!!.jsonPrimitive.boolean)
+                    assertEquals("2", body["cursor"]!!.jsonPrimitive.content)
+                    assertEquals(20, links.size)
+                    assertEquals(
+                        21,
+                        links
+                            .first()
+                            .jsonObject["id"]!!
+                            .jsonPrimitive.int,
+                    )
+                    assertEquals(
+                        2,
+                        links
+                            .last()
+                            .jsonObject["id"]!!
+                            .jsonPrimitive.int,
+                    )
+                }
+
+            assertEquals(LinkListInput(userId = 7, cursor = null, limit = 21), repository.lastListInput)
         }
 
     @Test
@@ -251,10 +418,10 @@ class LinkRoutesTest {
                     bearerAuth(issueTestToken(7, config))
                 }.apply {
                     assertEquals(HttpStatusCode.OK, status)
-                    assertEquals("[]", bodyAsText())
+                    assertEquals("""{"links":[],"hasMore":false,"cursor":null}""", bodyAsText())
                 }
 
-            assertEquals(LinkListInput(userId = 7, cursor = "123", limit = 100), repository.lastListInput)
+            assertEquals(LinkListInput(userId = 7, cursor = "123", limit = 101), repository.lastListInput)
         }
 
     @Test
@@ -280,9 +447,10 @@ class LinkRoutesTest {
                     bearerAuth(issueTestToken(7, config))
                 }.apply {
                     assertEquals(HttpStatusCode.OK, status)
+                    assertEquals("""{"links":[],"hasMore":false,"cursor":null}""", bodyAsText())
                 }
 
-            assertEquals(LinkListInput(userId = 7, cursor = null, limit = 20), repository.lastListInput)
+            assertEquals(LinkListInput(userId = 7, cursor = null, limit = 21), repository.lastListInput)
         }
 
     @Test

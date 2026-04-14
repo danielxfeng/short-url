@@ -5,7 +5,8 @@ import dev.danielslab.shorturl.domain.Link
 import dev.danielslab.shorturl.dto.LinkCreateRequestDto
 import dev.danielslab.shorturl.dto.LinkDeleteRequestDto
 import dev.danielslab.shorturl.dto.LinkListRequestDto
-import dev.danielslab.shorturl.dto.LinkResponse
+import dev.danielslab.shorturl.dto.LinkResponseDto
+import dev.danielslab.shorturl.dto.LinksResponseDto
 import dev.danielslab.shorturl.plugins.validateLinkDeleteRequest
 import dev.danielslab.shorturl.plugins.validateLinkListRequest
 import dev.danielslab.shorturl.repository.core.LinkCreateInput
@@ -88,7 +89,17 @@ fun Route.linkRoutes(
                     maxPageSize = config.linkMaxPageSize,
                 )
 
-            call.respond(linkRepository.getLinksByUserId(request).map { it.toResponse() })
+            val newRequest = request.copy(limit = request.limit + 1)
+            val links = linkRepository.getLinksByUserId(newRequest)
+            val page = links.take(request.limit)
+
+            call.respond(
+                LinksResponseDto(
+                    links = page.map { it.toResponse() },
+                    hasMore = links.size > request.limit,
+                    cursor = page.lastOrNull()?.id?.toString(),
+                ),
+            )
         }
 
         post("") {
@@ -206,8 +217,8 @@ private fun LinkListRequestDto.toInput(
 
 private fun LinkDeleteRequestDto.toInput(userId: Int): LinkDeleteInput = LinkDeleteInput(userId = userId, code = code)
 
-private fun Link.toResponse(): LinkResponse =
-    LinkResponse(
+private fun Link.toResponse(): LinkResponseDto =
+    LinkResponseDto(
         id = id,
         userId = userId,
         code = code,
