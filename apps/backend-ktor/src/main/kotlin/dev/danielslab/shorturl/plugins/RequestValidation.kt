@@ -94,7 +94,16 @@ private fun isAllowedPublicHttpUrl(value: String): Boolean {
     if (!uri.userInfo.isNullOrBlank()) return false
 
     val host = uri.host?.lowercase() ?: return false
-    if (host == "localhost" || host.endsWith(".localhost") || host.endsWith(".local")) return false
+    if (
+        host == "localhost" ||
+        host.endsWith(".localhost") ||
+        host.endsWith(".local") ||
+        host.endsWith(".internal") ||
+        host.endsWith(".home") ||
+        host.endsWith(".lan")
+    ) {
+        return false
+    }
     if (host.startsWith("[") && host.endsWith("]")) {
         return !isPrivateIpLiteral(host.removePrefix("[").removeSuffix("]"))
     }
@@ -106,9 +115,11 @@ private fun isPrivateIpLiteral(host: String): Boolean {
     if (":" in host) {
         val normalized = host.lowercase()
         return normalized == "::1" ||
+            normalized == "::" ||
             normalized.startsWith("fc") ||
             normalized.startsWith("fd") ||
-            normalized.startsWith("fe80:")
+            normalized.startsWith("fe80:") ||
+            normalized.startsWith("ff")
     }
 
     val octets = host.split(".")
@@ -120,8 +131,12 @@ private fun isPrivateIpLiteral(host: String): Boolean {
     if (values.any { it !in 0..255 }) return false
 
     return values[0] == 10 ||
+        values[0] == 0 ||
         values[0] == 127 ||
+        values[0] >= 224 ||
         (values[0] == 169 && values[1] == 254) ||
+        (values[0] == 100 && values[1] in 64..127) ||
         (values[0] == 172 && values[1] in 16..31) ||
-        (values[0] == 192 && values[1] == 168)
+        (values[0] == 192 && values[1] == 168) ||
+        (values[0] == 198 && values[1] in 18..19)
 }

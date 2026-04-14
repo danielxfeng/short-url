@@ -382,6 +382,72 @@ class LinkRequestValidationTest {
         }
 
     @Test
+    fun `rejects internal domain url`() =
+        testApplication {
+            application { linkValidationTestModule() }
+
+            val response =
+                client.post("/links") {
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        """
+                        {
+                          "code": "hello-world",
+                          "originalUrl": "https://service.internal/dashboard"
+                        }
+                        """.trimIndent(),
+                    )
+                }
+
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+            assertEquals("originalUrl must be a public http/https URL", response.bodyAsText())
+        }
+
+    @Test
+    fun `rejects home domain url`() =
+        testApplication {
+            application { linkValidationTestModule() }
+
+            val response =
+                client.post("/links") {
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        """
+                        {
+                          "code": "hello-world",
+                          "originalUrl": "https://gateway.home/"
+                        }
+                        """.trimIndent(),
+                    )
+                }
+
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+            assertEquals("originalUrl must be a public http/https URL", response.bodyAsText())
+        }
+
+    @Test
+    fun `rejects lan domain url`() =
+        testApplication {
+            application { linkValidationTestModule() }
+
+            val response =
+                client.post("/links") {
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        """
+                        {
+                          "code": "hello-world",
+                          "originalUrl": "https://nas.lan/"
+                        }
+                        """.trimIndent(),
+                    )
+                }
+
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+            assertEquals("originalUrl must be a public http/https URL", response.bodyAsText())
+        }
+
+    @Test
     fun `rejects url with user info`() =
         testApplication {
             application { linkValidationTestModule() }
@@ -394,6 +460,138 @@ class LinkRequestValidationTest {
                         {
                           "code": "hello-world",
                           "originalUrl": "https://user:pass@example.com/private"
+                        }
+                        """.trimIndent(),
+                    )
+                }
+
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+            assertEquals("originalUrl must be a public http/https URL", response.bodyAsText())
+        }
+
+    @Test
+    fun `rejects unspecified ipv4 url`() =
+        testApplication {
+            application { linkValidationTestModule() }
+
+            val response =
+                client.post("/links") {
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        """
+                        {
+                          "code": "hello-world",
+                          "originalUrl": "http://0.1.2.3/private"
+                        }
+                        """.trimIndent(),
+                    )
+                }
+
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+            assertEquals("originalUrl must be a public http/https URL", response.bodyAsText())
+        }
+
+    @Test
+    fun `rejects carrier grade nat url`() =
+        testApplication {
+            application { linkValidationTestModule() }
+
+            val response =
+                client.post("/links") {
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        """
+                        {
+                          "code": "hello-world",
+                          "originalUrl": "http://100.64.1.1/private"
+                        }
+                        """.trimIndent(),
+                    )
+                }
+
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+            assertEquals("originalUrl must be a public http/https URL", response.bodyAsText())
+        }
+
+    @Test
+    fun `rejects benchmark network url`() =
+        testApplication {
+            application { linkValidationTestModule() }
+
+            val response =
+                client.post("/links") {
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        """
+                        {
+                          "code": "hello-world",
+                          "originalUrl": "http://198.18.0.1/private"
+                        }
+                        """.trimIndent(),
+                    )
+                }
+
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+            assertEquals("originalUrl must be a public http/https URL", response.bodyAsText())
+        }
+
+    @Test
+    fun `rejects multicast ipv4 url`() =
+        testApplication {
+            application { linkValidationTestModule() }
+
+            val response =
+                client.post("/links") {
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        """
+                        {
+                          "code": "hello-world",
+                          "originalUrl": "http://224.0.0.1/private"
+                        }
+                        """.trimIndent(),
+                    )
+                }
+
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+            assertEquals("originalUrl must be a public http/https URL", response.bodyAsText())
+        }
+
+    @Test
+    fun `rejects unspecified ipv6 url`() =
+        testApplication {
+            application { linkValidationTestModule() }
+
+            val response =
+                client.post("/links") {
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        """
+                        {
+                          "code": "hello-world",
+                          "originalUrl": "http://[::]/private"
+                        }
+                        """.trimIndent(),
+                    )
+                }
+
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+            assertEquals("originalUrl must be a public http/https URL", response.bodyAsText())
+        }
+
+    @Test
+    fun `rejects multicast ipv6 url`() =
+        testApplication {
+            application { linkValidationTestModule() }
+
+            val response =
+                client.post("/links") {
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        """
+                        {
+                          "code": "hello-world",
+                          "originalUrl": "http://[ff02::1]/private"
                         }
                         """.trimIndent(),
                     )
