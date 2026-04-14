@@ -27,7 +27,7 @@ import org.jetbrains.exposed.sql.insertReturning
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.update
 import org.jetbrains.exposed.sql.updateReturning
-import org.jetbrains.exposed.sql.upsert
+import org.jetbrains.exposed.sql.upsertReturning
 import org.postgresql.util.PSQLException
 import kotlin.time.toKotlinInstant
 
@@ -57,20 +57,14 @@ class PqRepository(
 
     override suspend fun upsertUser(userInput: UserUpsertInput): User =
         dbExecutor.query {
-            UsersTable.upsert(
-                keys = arrayOf(UsersTable.provider, UsersTable.providerId),
-            ) {
-                it[provider] = userInput.provider
-                it[providerId] = userInput.providerId
-                it[displayName] = userInput.displayName
-                it[profilePic] = userInput.profilePicture
-            }
-
             UsersTable
-                .selectAll()
-                .where {
-                    (UsersTable.provider eq userInput.provider) and
-                        (UsersTable.providerId eq userInput.providerId)
+                .upsertReturning(
+                    keys = arrayOf(UsersTable.provider, UsersTable.providerId),
+                ) {
+                    it[provider] = userInput.provider
+                    it[providerId] = userInput.providerId
+                    it[displayName] = userInput.displayName
+                    it[profilePic] = userInput.profilePicture
                 }.single()
                 .toUser()
         }
