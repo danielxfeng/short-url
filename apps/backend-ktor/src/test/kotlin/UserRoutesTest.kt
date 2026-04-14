@@ -1,5 +1,7 @@
 package dev.danielslab.shorturl.routes
 
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
 import dev.danielslab.shorturl.config.Config
 import dev.danielslab.shorturl.domain.User
 import dev.danielslab.shorturl.domain.UserProvider
@@ -16,6 +18,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
+import java.util.Date
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -70,7 +73,7 @@ class UserRoutesTest {
 
             client
                 .get("/api/v1/user/me") {
-                    bearerAuth(issueToken(1, config))
+                    bearerAuth(issueTestToken(1, config))
                 }.apply {
                     assertEquals(HttpStatusCode.OK, status)
                     assertEquals(
@@ -99,7 +102,7 @@ class UserRoutesTest {
 
             client
                 .get("/api/v1/user/me") {
-                    bearerAuth(issueToken(1, config))
+                    bearerAuth(issueTestToken(1, config))
                 }.apply {
                     assertEquals(HttpStatusCode.NotFound, status)
                 }
@@ -132,7 +135,7 @@ class UserRoutesTest {
 
             client
                 .delete("/api/v1/user/me") {
-                    bearerAuth(issueToken(1, config))
+                    bearerAuth(issueTestToken(1, config))
                 }.apply {
                     assertEquals(HttpStatusCode.NoContent, status)
                 }
@@ -170,6 +173,18 @@ private fun testConfig(): Config =
         linkDefaultPageSize = 20,
         linkMaxPageSize = 100,
     )
+
+private fun issueTestToken(
+    userId: Int,
+    config: Config,
+): String =
+    JWT
+        .create()
+        .withAudience(config.jwtAudience)
+        .withIssuer(config.jwtDomain)
+        .withClaim("userId", userId)
+        .withExpiresAt(Date(System.currentTimeMillis() + config.jwtExpiry * 60L * 60L * 1000L))
+        .sign(Algorithm.HMAC256(config.jwtSecret))
 
 private class FakeUserRepository : UserRepository {
     val users = mutableMapOf<Int, User>()

@@ -135,6 +135,28 @@ class LinkRequestValidationTest {
         }
 
     @Test
+    fun `rejects invalid code characters on create`() =
+        testApplication {
+            application { linkValidationTestModule() }
+
+            val response =
+                client.post("/links") {
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        """
+                        {
+                          "code": "hello_123",
+                          "originalUrl": "https://example.com/page"
+                        }
+                        """.trimIndent(),
+                    )
+                }
+
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+            assertEquals("code must contain only alphabets, numbers, and dash", response.bodyAsText())
+        }
+
+    @Test
     fun `rejects blank note`() =
         testApplication {
             application { linkValidationTestModule() }
@@ -355,6 +377,21 @@ class LinkRequestValidationTest {
 
             assertEquals(HttpStatusCode.BadRequest, response.status)
             assertEquals("code must be at most 255 characters", response.bodyAsText())
+        }
+
+    @Test
+    fun `rejects invalid code characters on delete`() =
+        testApplication {
+            application { linkValidationTestModule() }
+
+            val response =
+                client.post("/links/delete") {
+                    contentType(ContentType.Application.Json)
+                    setBody("""{"code":"hello_123"}""")
+                }
+
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+            assertEquals("code must contain only alphabets, numbers, and dash", response.bodyAsText())
         }
 }
 

@@ -3,11 +3,13 @@ package dev.danielslab.shorturl.routes
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import dev.danielslab.shorturl.config.Config
-import dev.danielslab.shorturl.domain.UserProvider
+import dev.danielslab.shorturl.domain.User
 import dev.danielslab.shorturl.dto.UserResponseDto
+import dev.danielslab.shorturl.dto.oauth.GithubUserInfo
+import dev.danielslab.shorturl.dto.oauth.GoogleUserInfo
+import dev.danielslab.shorturl.dto.oauth.OAuthUserProfile
 import dev.danielslab.shorturl.repository.core.NotFoundException
 import dev.danielslab.shorturl.repository.core.UserRepository
-import dev.danielslab.shorturl.repository.core.UserUpsertInput
 import dev.danielslab.shorturl.utils.OAuthHttpClient
 import dev.danielslab.shorturl.utils.requireUserId
 import io.ktor.client.call.body
@@ -26,7 +28,6 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
-import kotlinx.serialization.Serializable
 import java.util.Date
 
 fun Route.userRoutes(
@@ -53,46 +54,22 @@ fun Route.userRoutes(
                 get("/login") {}
 
                 get("/callback") {
-                    val principal: OAuthAccessTokenResponse.OAuth2? = call.principal()
-
-                    if (principal == null) {
-                        redirectAuthError(call, config.notFoundPage, "failed to get token from google")
-                        return@get
-                    }
-
-                    val userInfo =
-                        try {
-                            OAuthHttpClient.client
-                                .get(config.googleUserInfoUrl) {
-                                    header(HttpHeaders.Authorization, "Bearer ${principal.accessToken}")
-                                }.body<GoogleUserInfo>()
-                        } catch (e: Exception) {
-                            redirectAuthError(call, config.notFoundPage, "failed to fetch google user info", e)
-                            return@get
-                        }
+                    val principal =
+                        call.principal<OAuthAccessTokenResponse.OAuth2>()
+                            ?: run {
+                                redirectAuthError(call, config.notFoundPage, "failed to get token from google")
+                                return@get
+                            }
 
                     val user =
-                        try {
-                            userRepository.upsertUser(
-                                UserUpsertInput(
-                                    provider = UserProvider.GOOGLE,
-                                    providerId = userInfo.sub,
-                                    displayName = userInfo.name,
-                                    profilePicture = userInfo.picture,
-                                ),
-                            )
-                        } catch (e: Exception) {
-                            redirectAuthError(call, config.notFoundPage, "failed to authorize", e)
-                            return@get
-                        }
+                        call.fetchAndUpsertOAuthUser<GoogleUserInfo>(
+                            config = config,
+                            userRepository = userRepository,
+                            accessToken = principal.accessToken,
+                            userInfoUrl = config.googleUserInfoUrl,
+                        ) ?: return@get
 
-                    val token =
-                        try {
-                            issueToken(user.id, config)
-                        } catch (e: Exception) {
-                            redirectAuthError(call, config.notFoundPage, "failed to issue token", e)
-                            return@get
-                        }
+                    val token = call.issueTokenOrRedirect(user.id, config) ?: return@get
 
                     call.respondRedirect(
                         URLBuilder(config.frontendRedirectUrl)
@@ -109,46 +86,22 @@ fun Route.userRoutes(
                 get("/login") {}
 
                 get("/callback") {
-                    val principal: OAuthAccessTokenResponse.OAuth2? = call.principal()
-                    if (principal == null) {
-                        redirectAuthError(call, config.notFoundPage, "failed to get token from github")
-                        return@get
-                    }
-
-                    val userInfo =
-                        try {
-                            OAuthHttpClient.client
-                                .get(config.githubUserInfoUrl) {
-                                    header(HttpHeaders.Authorization, "Bearer ${principal.accessToken}")
-                                    header(HttpHeaders.Accept, "application/vnd.github+json")
-                                }.body<GithubUserInfo>()
-                        } catch (e: Exception) {
-                            redirectAuthError(call, config.notFoundPage, "failed to fetch github user info", e)
-                            return@get
-                        }
+                    val principal =
+                        call.principal<OAuthAccessTokenResponse.OAuth2>()
+                            ?: run {
+                                redirectAuthError(call, config.notFoundPage, "failed to get token from github")
+                                return@get
+                            }
 
                     val user =
-                        try {
-                            userRepository.upsertUser(
-                                UserUpsertInput(
-                                    provider = UserProvider.GITHUB,
-                                    providerId = userInfo.id.toString(),
-                                    displayName = userInfo.name,
-                                    profilePicture = userInfo.avatarUrl,
-                                ),
-                            )
-                        } catch (e: Exception) {
-                            redirectAuthError(call, config.notFoundPage, "failed to authorize", e)
-                            return@get
-                        }
+                        call.fetchAndUpsertOAuthUser<GithubUserInfo>(
+                            config = config,
+                            userRepository = userRepository,
+                            accessToken = principal.accessToken,
+                            userInfoUrl = config.githubUserInfoUrl,
+                        ) ?: return@get
 
-                    val token =
-                        try {
-                            issueToken(user.id, config)
-                        } catch (e: Exception) {
-                            redirectAuthError(call, config.notFoundPage, "failed to issue token", e)
-                            return@get
-                        }
+                    val token = call.issueTokenOrRedirect(user.id, config) ?: return@get
 
                     call.respondRedirect(
                         URLBuilder(config.frontendRedirectUrl)
@@ -164,12 +117,12 @@ fun Route.userRoutes(
     authenticate("auth-jwt") {
         route("/me") {
             get("") {
-                val userId = call.requireUserId()
-                val user =
-                    userRepository.getUserById(userId)
-                        ?: throw NotFoundException("User not found")
-
-                call.respond(UserResponseDto.fromDomain(user))
+                call.respond(
+                    userRepository
+                        .getUserById(call.requireUserId())
+                        ?.toResponseDto()
+                        ?: throw NotFoundException("User not found"),
+                )
             }
 
             delete("") {
@@ -202,29 +155,53 @@ suspend fun redirectAuthError(
     )
 }
 
-fun issueToken(
+suspend fun ApplicationCall.issueTokenOrRedirect(
     userId: Int,
     config: Config,
-): String =
-    JWT
-        .create()
-        .withAudience(config.jwtAudience)
-        .withIssuer(config.jwtDomain)
-        .withClaim("userId", userId)
-        .withExpiresAt(Date(System.currentTimeMillis() + config.jwtExpiry * 60L * 60L * 1000L))
-        .sign(Algorithm.HMAC256(config.jwtSecret))
+): String? =
+    try {
+        JWT
+            .create()
+            .withAudience(config.jwtAudience)
+            .withIssuer(config.jwtDomain)
+            .withClaim("userId", userId)
+            .withExpiresAt(Date(System.currentTimeMillis() + config.jwtExpiry * 60L * 60L * 1000L))
+            .sign(Algorithm.HMAC256(config.jwtSecret))
+    } catch (e: Exception) {
+        redirectAuthError(this, config.notFoundPage, "failed to issue token", e)
+        null
+    }
 
-@Serializable
-data class GoogleUserInfo(
-    val sub: String,
-    val name: String? = null,
-    val picture: String? = null,
-)
+suspend inline fun <reified T : OAuthUserProfile> ApplicationCall.fetchAndUpsertOAuthUser(
+    config: Config,
+    userRepository: UserRepository,
+    accessToken: String,
+    userInfoUrl: String,
+): User? {
+    val userInfo =
+        try {
+            OAuthHttpClient.client
+                .get(userInfoUrl) {
+                    header(HttpHeaders.Authorization, "Bearer $accessToken")
+                }.body<T>()
+        } catch (e: Exception) {
+            redirectAuthError(this, config.notFoundPage, "failed to fetch user info", e)
+            return null
+        }
 
-@Serializable
-data class GithubUserInfo(
-    val id: Long,
-    val name: String? = null,
-    @kotlinx.serialization.SerialName("avatar_url")
-    val avatarUrl: String? = null,
-)
+    return try {
+        userRepository.upsertUser(userInfo.toUserUpsertInput())
+    } catch (e: Exception) {
+        redirectAuthError(this, config.notFoundPage, "failed to authorize", e)
+        null
+    }
+}
+
+private fun User.toResponseDto(): UserResponseDto =
+    UserResponseDto(
+        id = id,
+        provider = provider,
+        providerId = providerId,
+        displayName = displayName,
+        profilePicture = profilePicture,
+    )

@@ -2,7 +2,6 @@ package dev.danielslab.shorturl.plugins
 
 import dev.danielslab.shorturl.dto.LinkCreateRequestDto
 import dev.danielslab.shorturl.dto.LinkDeleteRequestDto
-import dev.danielslab.shorturl.dto.UserUpsertRequestDto
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.requestvalidation.RequestValidation
@@ -15,6 +14,9 @@ fun Application.configureRequestValidation() {
             when {
                 validateRequiredString(request.code, "code", maxLength = 255) != null ->
                     ValidationResult.Invalid(validateRequiredString(request.code, "code", maxLength = 255)!!)
+
+                validateCode(request.code) != null ->
+                    ValidationResult.Invalid(validateCode(request.code)!!)
 
                 validateOptionalString(request.note, "note", maxLength = 255, combineBlankAndMax = false) != null ->
                     ValidationResult.Invalid(validateOptionalString(request.note, "note", maxLength = 255, combineBlankAndMax = false)!!)
@@ -31,25 +33,20 @@ fun Application.configureRequestValidation() {
                 validateRequiredString(request.code, "code", maxLength = 255) != null ->
                     ValidationResult.Invalid(validateRequiredString(request.code, "code", maxLength = 255)!!)
 
-                else -> ValidationResult.Valid
-            }
-        }
-
-        validate<UserUpsertRequestDto> { request ->
-            when {
-                validateRequiredString(request.providerId, "providerId") != null ->
-                    ValidationResult.Invalid(validateRequiredString(request.providerId, "providerId")!!)
-
-                validateOptionalString(request.displayName, "displayName", maxLength = 255) != null ->
-                    ValidationResult.Invalid(validateOptionalString(request.displayName, "displayName", maxLength = 255)!!)
-
-                validateOptionalString(request.profilePicture, "profilePicture", maxLength = 2048) != null ->
-                    ValidationResult.Invalid(validateOptionalString(request.profilePicture, "profilePicture", maxLength = 2048)!!)
+                validateCode(request.code) != null ->
+                    ValidationResult.Invalid(validateCode(request.code)!!)
 
                 else -> ValidationResult.Valid
             }
         }
     }
+}
+
+private fun validateCode(value: String): String? {
+    if (!value.matches(Regex("^[A-Za-z0-9-]+$"))) {
+        return "code must contain only alphabets, numbers, and dash"
+    }
+    return null
 }
 
 private fun validateRequiredString(
