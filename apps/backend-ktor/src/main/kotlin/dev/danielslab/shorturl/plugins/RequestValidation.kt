@@ -2,6 +2,7 @@ package dev.danielslab.shorturl.plugins
 
 import dev.danielslab.shorturl.dto.LinkCreateRequestDto
 import dev.danielslab.shorturl.dto.LinkDeleteRequestDto
+import dev.danielslab.shorturl.dto.LinkListRequestDto
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.requestvalidation.RequestValidation
@@ -11,12 +12,13 @@ import java.net.URI
 fun Application.configureRequestValidation() {
     install(RequestValidation) {
         validate<LinkCreateRequestDto> { request ->
+            val code = request.code
             when {
-                validateRequiredString(request.code, "code", maxLength = 255) != null ->
-                    ValidationResult.Invalid(validateRequiredString(request.code, "code", maxLength = 255)!!)
+                validateOptionalString(code, "code", maxLength = 255, combineBlankAndMax = false) != null ->
+                    ValidationResult.Invalid(validateOptionalString(code, "code", maxLength = 255, combineBlankAndMax = false)!!)
 
-                validateCode(request.code) != null ->
-                    ValidationResult.Invalid(validateCode(request.code)!!)
+                code != null && validateCode(code) != null ->
+                    ValidationResult.Invalid(validateCode(code)!!)
 
                 validateOptionalString(request.note, "note", maxLength = 255, combineBlankAndMax = false) != null ->
                     ValidationResult.Invalid(validateOptionalString(request.note, "note", maxLength = 255, combineBlankAndMax = false)!!)
@@ -27,20 +29,14 @@ fun Application.configureRequestValidation() {
                 else -> ValidationResult.Valid
             }
         }
-
-        validate<LinkDeleteRequestDto> { request ->
-            when {
-                validateRequiredString(request.code, "code", maxLength = 255) != null ->
-                    ValidationResult.Invalid(validateRequiredString(request.code, "code", maxLength = 255)!!)
-
-                validateCode(request.code) != null ->
-                    ValidationResult.Invalid(validateCode(request.code)!!)
-
-                else -> ValidationResult.Valid
-            }
-        }
     }
 }
+
+fun validateLinkDeleteRequest(request: LinkDeleteRequestDto): String? =
+    validateRequiredString(request.code, "code", maxLength = 255)
+        ?: validateCode(request.code)
+
+fun validateLinkListRequest(request: LinkListRequestDto): String? = validateOptionalString(request.cursor, "cursor", maxLength = 255)
 
 private fun validateCode(value: String): String? {
     if (!value.matches(Regex("^[A-Za-z0-9-]+$"))) {

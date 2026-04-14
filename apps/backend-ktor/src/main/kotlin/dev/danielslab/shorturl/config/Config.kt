@@ -32,6 +32,8 @@ data class Config(
     val frontendRedirectUrl: String,
     val linkDefaultPageSize: Int,
     val linkMaxPageSize: Int,
+    val linkCodeLength: Int,
+    val linkCodeGenerateRetries: Int,
 ) {
     val corsScheme: String
         get() = corsUri.scheme ?: error("CORS origin must include a scheme: $cors")
@@ -75,6 +77,8 @@ data class Config(
                 frontendRedirectUrl = envString("FRONTEND_REDIRECT_URL", "http://localhost:5173/auth/callback"),
                 linkDefaultPageSize = cfgInt(application, "links.default-page-size", 20),
                 linkMaxPageSize = cfgInt(application, "links.max-page-size", 100),
+                linkCodeLength = cfgInt(application, "links.code-length", 8),
+                linkCodeGenerateRetries = cfgInt(application, "links.code-generate-retries", 5),
             )
 
         private fun envString(

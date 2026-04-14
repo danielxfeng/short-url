@@ -1,7 +1,8 @@
 package dev.danielslab.shorturl.dto
 
-import dev.danielslab.shorturl.domain.Link
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class LinkResponse(
     val id: Int,
     val userId: Int,
@@ -11,18 +12,4 @@ data class LinkResponse(
     val note: String? = null,
     val createdAt: String,
     val isDeleted: Boolean,
-) {
-    companion object {
-        fun fromDomain(link: Link): LinkResponse =
-            LinkResponse(
-                link.id,
-                link.userId,
-                link.code,
-                link.originalUrl,
-                link.clicks,
-                link.note,
-                link.createdAt.toString(),
-                link.deletedAt != null,
-            )
-    }
-}
+)

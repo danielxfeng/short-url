@@ -2,8 +2,11 @@ package dev.danielslab.shorturl
 
 import dev.danielslab.shorturl.dto.LinkCreateRequestDto
 import dev.danielslab.shorturl.dto.LinkDeleteRequestDto
+import dev.danielslab.shorturl.dto.LinkListRequestDto
 import dev.danielslab.shorturl.plugins.configureRequestValidation
 import dev.danielslab.shorturl.plugins.configureSerialization
+import dev.danielslab.shorturl.plugins.validateLinkDeleteRequest
+import dev.danielslab.shorturl.plugins.validateLinkListRequest
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -91,6 +94,27 @@ class LinkRequestValidationTest {
         }
 
     @Test
+    fun `accepts omitted code`() =
+        testApplication {
+            application { linkValidationTestModule() }
+
+            val response =
+                client.post("/links") {
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        """
+                        {
+                          "originalUrl": "https://example.com/page",
+                          "note": "my note"
+                        }
+                        """.trimIndent(),
+                    )
+                }
+
+            assertEquals(HttpStatusCode.OK, response.status)
+        }
+
+    @Test
     fun `rejects blank code on create`() =
         testApplication {
             application { linkValidationTestModule() }
@@ -157,6 +181,28 @@ class LinkRequestValidationTest {
         }
 
     @Test
+    fun `rejects invalid code type on create`() =
+        testApplication {
+            application { linkValidationTestModule() }
+
+            val response =
+                client.post("/links") {
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        """
+                        {
+                          "code": {},
+                          "originalUrl": "https://example.com/page"
+                        }
+                        """.trimIndent(),
+                    )
+                }
+
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+            assertTrue(response.bodyAsText().contains("code", ignoreCase = true))
+        }
+
+    @Test
     fun `rejects blank note`() =
         testApplication {
             application { linkValidationTestModule() }
@@ -200,6 +246,29 @@ class LinkRequestValidationTest {
 
             assertEquals(HttpStatusCode.BadRequest, response.status)
             assertEquals("note must be at most 255 characters", response.bodyAsText())
+        }
+
+    @Test
+    fun `rejects invalid note type`() =
+        testApplication {
+            application { linkValidationTestModule() }
+
+            val response =
+                client.post("/links") {
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        """
+                        {
+                          "code": "hello-world",
+                          "originalUrl": "https://example.com/page",
+                          "note": {}
+                        }
+                        """.trimIndent(),
+                    )
+                }
+
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+            assertTrue(response.bodyAsText().contains("note", ignoreCase = true))
         }
 
     @Test
@@ -269,29 +338,7 @@ class LinkRequestValidationTest {
         }
 
     @Test
-    fun `rejects invalid code type on create`() =
-        testApplication {
-            application { linkValidationTestModule() }
-
-            val response =
-                client.post("/links") {
-                    contentType(ContentType.Application.Json)
-                    setBody(
-                        """
-                        {
-                          "code": {},
-                          "originalUrl": "https://example.com/page"
-                        }
-                        """.trimIndent(),
-                    )
-                }
-
-            assertEquals(HttpStatusCode.BadRequest, response.status)
-            assertTrue(response.bodyAsText().contains("code", ignoreCase = true))
-        }
-
-    @Test
-    fun `rejects invalid note type`() =
+    fun `rejects ipv6 loopback url`() =
         testApplication {
             application { linkValidationTestModule() }
 
@@ -302,15 +349,58 @@ class LinkRequestValidationTest {
                         """
                         {
                           "code": "hello-world",
-                          "originalUrl": "https://example.com/page",
-                          "note": {}
+                          "originalUrl": "http://[::1]/private"
                         }
                         """.trimIndent(),
                     )
                 }
 
             assertEquals(HttpStatusCode.BadRequest, response.status)
-            assertTrue(response.bodyAsText().contains("note", ignoreCase = true))
+            assertEquals("originalUrl must be a public http/https URL", response.bodyAsText())
+        }
+
+    @Test
+    fun `rejects local domain url`() =
+        testApplication {
+            application { linkValidationTestModule() }
+
+            val response =
+                client.post("/links") {
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        """
+                        {
+                          "code": "hello-world",
+                          "originalUrl": "https://printer.local/settings"
+                        }
+                        """.trimIndent(),
+                    )
+                }
+
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+            assertEquals("originalUrl must be a public http/https URL", response.bodyAsText())
+        }
+
+    @Test
+    fun `rejects url with user info`() =
+        testApplication {
+            application { linkValidationTestModule() }
+
+            val response =
+                client.post("/links") {
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        """
+                        {
+                          "code": "hello-world",
+                          "originalUrl": "https://user:pass@example.com/private"
+                        }
+                        """.trimIndent(),
+                    )
+                }
+
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+            assertEquals("originalUrl must be a public http/https URL", response.bodyAsText())
         }
 
     @Test
@@ -350,49 +440,56 @@ class LinkRequestValidationTest {
         }
 
     @Test
-    fun `rejects blank code on delete`() =
-        testApplication {
-            application { linkValidationTestModule() }
-
-            val response =
-                client.post("/links/delete") {
-                    contentType(ContentType.Application.Json)
-                    setBody("""{"code":""}""")
-                }
-
-            assertEquals(HttpStatusCode.BadRequest, response.status)
-            assertEquals("code must not be blank", response.bodyAsText())
-        }
+    fun `delete helper accepts valid code`() {
+        assertEquals(null, validateLinkDeleteRequest(LinkDeleteRequestDto(code = "hello-world-123")))
+    }
 
     @Test
-    fun `rejects too long code on delete`() =
-        testApplication {
-            application { linkValidationTestModule() }
-
-            val response =
-                client.post("/links/delete") {
-                    contentType(ContentType.Application.Json)
-                    setBody("""{"code":"${"a".repeat(256)}"}""")
-                }
-
-            assertEquals(HttpStatusCode.BadRequest, response.status)
-            assertEquals("code must be at most 255 characters", response.bodyAsText())
-        }
+    fun `delete helper rejects blank code`() {
+        assertEquals("code must not be blank", validateLinkDeleteRequest(LinkDeleteRequestDto(code = "")))
+    }
 
     @Test
-    fun `rejects invalid code characters on delete`() =
-        testApplication {
-            application { linkValidationTestModule() }
+    fun `delete helper rejects too long code`() {
+        assertEquals(
+            "code must be at most 255 characters",
+            validateLinkDeleteRequest(LinkDeleteRequestDto(code = "a".repeat(256))),
+        )
+    }
 
-            val response =
-                client.post("/links/delete") {
-                    contentType(ContentType.Application.Json)
-                    setBody("""{"code":"hello_123"}""")
-                }
+    @Test
+    fun `delete helper rejects invalid characters`() {
+        assertEquals(
+            "code must contain only alphabets, numbers, and dash",
+            validateLinkDeleteRequest(LinkDeleteRequestDto(code = "hello_123")),
+        )
+    }
 
-            assertEquals(HttpStatusCode.BadRequest, response.status)
-            assertEquals("code must contain only alphabets, numbers, and dash", response.bodyAsText())
-        }
+    @Test
+    fun `list helper accepts null cursor`() {
+        assertEquals(null, validateLinkListRequest(LinkListRequestDto(cursor = null, limit = null)))
+    }
+
+    @Test
+    fun `list helper accepts valid cursor`() {
+        assertEquals(null, validateLinkListRequest(LinkListRequestDto(cursor = "123", limit = null)))
+    }
+
+    @Test
+    fun `list helper rejects blank cursor`() {
+        assertEquals(
+            "cursor must not be blank, and at most 255 characters",
+            validateLinkListRequest(LinkListRequestDto(cursor = "", limit = null)),
+        )
+    }
+
+    @Test
+    fun `list helper rejects too long cursor`() {
+        assertEquals(
+            "cursor must not be blank, and at most 255 characters",
+            validateLinkListRequest(LinkListRequestDto(cursor = "a".repeat(256), limit = null)),
+        )
+    }
 }
 
 private fun Application.linkValidationTestModule() {

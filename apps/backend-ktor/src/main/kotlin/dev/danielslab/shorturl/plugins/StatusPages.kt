@@ -4,6 +4,7 @@ import dev.danielslab.shorturl.dto.ErrorResponse
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
+import io.ktor.server.plugins.ContentTransformationException
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.plugins.statuspages.exception
 import io.ktor.server.response.respond
@@ -28,6 +29,13 @@ fun Application.configureStatusPages() {
             call.respond(
                 status = HttpStatusCode.Conflict,
                 message = ErrorResponse(cause.message ?: "Conflict"),
+            )
+        }
+
+        exception<ContentTransformationException> { call, cause ->
+            call.respond(
+                status = HttpStatusCode.BadRequest,
+                message = ErrorResponse(cause.message ?: "Bad request"),
             )
         }
 

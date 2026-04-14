@@ -21,7 +21,7 @@ fun Application.configureRouting(
                 userRoutes(config, userRepository)
             }
             route("/short-urls") {
-                linkRoutes()
+                linkRoutes(config, linkRepository)
             }
         }
     }

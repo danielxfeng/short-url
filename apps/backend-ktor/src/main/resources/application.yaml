@@ -22,3 +22,5 @@ oauth:
 links:
   default-page-size: 20
   max-page-size: 100
+  code-length: 8
+  code-generate-retries: 5

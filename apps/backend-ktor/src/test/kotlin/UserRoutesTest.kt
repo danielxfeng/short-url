@@ -8,6 +8,7 @@ import dev.danielslab.shorturl.domain.UserProvider
 import dev.danielslab.shorturl.plugins.configureSecurity
 import dev.danielslab.shorturl.plugins.configureSerialization
 import dev.danielslab.shorturl.plugins.configureStatusPages
+import dev.danielslab.shorturl.repository.core.NotFoundException
 import dev.danielslab.shorturl.repository.core.UserRepository
 import dev.danielslab.shorturl.repository.core.UserUpsertInput
 import io.ktor.client.request.bearerAuth
@@ -24,6 +25,56 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 class UserRoutesTest {
+    @Test
+    fun `auth provider redirects to google login path`() =
+        testApplication {
+            val config = testConfig()
+            val repository = FakeUserRepository()
+
+            application {
+                configureSecurity(config)
+                configureSerialization()
+                configureStatusPages()
+                routing {
+                    route("/api/v1/user") {
+                        userRoutes(config, repository)
+                    }
+                }
+            }
+
+            createClient {
+                followRedirects = false
+            }.get("/api/v1/user/auth/google").apply {
+                assertEquals(HttpStatusCode.Found, status)
+                assertEquals("/api/v1/user/auth/google/login", headers["Location"])
+            }
+        }
+
+    @Test
+    fun `auth provider redirects invalid provider to not found page`() =
+        testApplication {
+            val config = testConfig()
+            val repository = FakeUserRepository()
+
+            application {
+                configureSecurity(config)
+                configureSerialization()
+                configureStatusPages()
+                routing {
+                    route("/api/v1/user") {
+                        userRoutes(config, repository)
+                    }
+                }
+            }
+
+            createClient {
+                followRedirects = false
+            }.get("/api/v1/user/auth/discord").apply {
+                assertEquals(HttpStatusCode.Found, status)
+                assertEquals("http://localhost:5173/not-found?error=provider+not+found", headers["Location"])
+            }
+        }
+
     @Test
     fun `get me returns unauthorized without token`() =
         testApplication {
@@ -105,7 +156,30 @@ class UserRoutesTest {
                     bearerAuth(issueTestToken(1, config))
                 }.apply {
                     assertEquals(HttpStatusCode.NotFound, status)
+                    assertEquals("""{"error":"User not found"}""", bodyAsText())
                 }
+        }
+
+    @Test
+    fun `delete me returns unauthorized without token`() =
+        testApplication {
+            val config = testConfig()
+            val repository = FakeUserRepository()
+
+            application {
+                configureSecurity(config)
+                configureSerialization()
+                configureStatusPages()
+                routing {
+                    route("/api/v1/user") {
+                        userRoutes(config, repository)
+                    }
+                }
+            }
+
+            client.delete("/api/v1/user/me").apply {
+                assertEquals(HttpStatusCode.Unauthorized, status)
+            }
         }
 
     @Test
@@ -142,6 +216,33 @@ class UserRoutesTest {
 
             assertNull(repository.users[1])
         }
+
+    @Test
+    fun `delete me returns not found when user is missing`() =
+        testApplication {
+            val config = testConfig()
+            val repository = FakeUserRepository()
+            repository.failDeleteMissing = true
+
+            application {
+                configureSecurity(config)
+                configureSerialization()
+                configureStatusPages()
+                routing {
+                    route("/api/v1/user") {
+                        userRoutes(config, repository)
+                    }
+                }
+            }
+
+            client
+                .delete("/api/v1/user/me") {
+                    bearerAuth(issueTestToken(1, config))
+                }.apply {
+                    assertEquals(HttpStatusCode.NotFound, status)
+                    assertEquals("""{"error":"User not found"}""", bodyAsText())
+                }
+        }
 }
 
 private fun testConfig(): Config =
@@ -172,6 +273,8 @@ private fun testConfig(): Config =
         frontendRedirectUrl = "http://localhost:5173/auth/callback",
         linkDefaultPageSize = 20,
         linkMaxPageSize = 100,
+        linkCodeLength = 8,
+        linkCodeGenerateRetries = 5,
     )
 
 private fun issueTestToken(
@@ -189,11 +292,15 @@ private fun issueTestToken(
 private class FakeUserRepository : UserRepository {
     val users = mutableMapOf<Int, User>()
     private var nextId = 1
+    var failDeleteMissing = false
 
     override suspend fun getUserById(id: Int): User? = users[id]
 
     override suspend fun deleteUserById(id: Int) {
-        users.remove(id)
+        val removed = users.remove(id)
+        if (removed == null && failDeleteMissing) {
+            throw NotFoundException("User not found")
+        }
     }
 
     override suspend fun upsertUser(userInput: UserUpsertInput): User {
