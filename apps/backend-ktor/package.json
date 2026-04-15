@@ -8,6 +8,7 @@
     "format": "./gradlew ktlintFormat",
     "test": "./gradlew test",
     "build": "./gradlew build",
+    "dev": "./gradlew run",
     "precommit": "pnpm run lint && pnpm run test && pnpm run build",
     "start": "./gradlew run",
     "jar": "./gradlew buildFatJar",
