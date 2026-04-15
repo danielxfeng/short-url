@@ -24,5 +24,5 @@ jobs:
       - name: Run Ktor checks
         working-directory: apps/backend-ktor
         env:
-          TEST_DB_URL: ${{ secrets.TEST_DB_URL }}
+          TEST_DB_URL_KTOR: ${{ secrets.TEST_DB_URL_KTOR }}
         run: ./gradlew test build

@@ -435,8 +435,8 @@ class PqRepositoryTest {
             }
 
         private fun testDbUrl(): String =
-            System.getenv("TEST_DB_URL")
-                ?: dotenv["TEST_DB_URL"]
-                ?: error("TEST_DB_URL is missing")
+            System.getenv("TEST_DB_URL_KTOR")
+                ?: dotenv["TEST_DB_URL_KTOR"]
+                ?: error("TEST_DB_URL_KTOR is missing")
     }
 }

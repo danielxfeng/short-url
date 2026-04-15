@@ -55,7 +55,7 @@ data class Config(
                 cors = envString("CORS", "http://localhost:5173"),
                 backendPublicUrl = envString("BACKEND_PUBLIC_URL", "http://localhost:8080"),
                 dbUrl = envString("DB_URL"),
-                testDbUrl = envString("TEST_DB_URL"),
+                testDbUrl = envString("TEST_DB_URL_KTOR"),
                 jwtDomain = cfgString(application, "jwt.domain"),
                 jwtAudience = cfgString(application, "jwt.audience"),
                 jwtRealm = cfgString(application, "jwt.realm"),
