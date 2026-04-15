@@ -20,11 +20,10 @@ object LinksTable : Table("links") {
     init {
         uniqueIndex("links_code_key", code)
         index(
-            customIndexName = "idx_links_active_by_user_created_at",
+            customIndexName = "idx_links_by_user_id_desc",
             isUnique = false,
             userId,
-            createdAt,
-            filterCondition = { deletedAt.isNull() },
+            id,
         )
     }
 }

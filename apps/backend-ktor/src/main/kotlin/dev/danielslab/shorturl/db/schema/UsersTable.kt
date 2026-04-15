@@ -24,6 +24,6 @@ object UsersTable : Table("users") {
     override val primaryKey = PrimaryKey(id)
 
     init {
-        uniqueIndex("provider", provider, providerId)
+        uniqueIndex("users_provider_provider_id_key", provider, providerId)
     }
 }
