@@ -7,7 +7,7 @@ export const linksQueryOptions = () =>
     queryKey: ['links'],
     queryFn: ({ pageParam }: { pageParam: number | undefined }) => getLinks(pageParam),
     initialPageParam: undefined,
-    getNextPageParam: (lastPage: LinksRes) => (lastPage.has_more ? lastPage.cursor : undefined),
+    getNextPageParam: (lastPage: LinksRes) => (lastPage.hasMore ? lastPage.cursor : undefined),
     select: (data: InfiniteData<LinksRes>) => data.pages.flatMap((page) => page.links),
     meta: {
       errorMessage: 'Failed to load links. Please try again.',

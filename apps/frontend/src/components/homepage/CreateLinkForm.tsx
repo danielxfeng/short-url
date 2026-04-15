@@ -60,7 +60,7 @@ export const CreateLinkFormComp = ({
         >
           <div className='flex gap-4'>
             <form.Field
-              name='original_url'
+              name='originalUrl'
               children={(field) => {
                 const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
                 return (

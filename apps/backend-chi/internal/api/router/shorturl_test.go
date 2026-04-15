@@ -45,20 +45,20 @@ func TestLinksToDTO(t *testing.T) {
 		t.Fatalf("unexpected first item mapping: %+v", got[0])
 	}
 	if got[0].CreatedAt != links[0].CreatedAt {
-		t.Fatalf("created_at mismatch: got %v want %v", got[0].CreatedAt, links[0].CreatedAt)
+		t.Fatalf("createdAt mismatch: got %v want %v", got[0].CreatedAt, links[0].CreatedAt)
 	}
 	if got[0].Note != nil {
 		t.Fatalf("expected first note to be nil, got %v", got[0].Note)
 	}
 	if got[0].IsDeleted {
-		t.Fatalf("expected active link to have is_deleted=false")
+		t.Fatalf("expected active link to have isDeleted=false")
 	}
 
 	if got[1].Note == nil || *got[1].Note != note {
 		t.Fatalf("expected second note %q, got %v", note, got[1].Note)
 	}
 	if !got[1].IsDeleted {
-		t.Fatalf("expected deleted link to have is_deleted=true")
+		t.Fatalf("expected deleted link to have isDeleted=true")
 	}
 }
 

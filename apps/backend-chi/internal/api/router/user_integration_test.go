@@ -422,13 +422,13 @@ func TestUserRouter_GetMe(t *testing.T) {
 					t.Fatalf("expected provider %q, got %q", models.ProviderEnumGOOGLE, got.Provider)
 				}
 				if got.ProviderID != "seed-google-get" {
-					t.Fatalf("expected provider_id %q, got %q", "seed-google-get", got.ProviderID)
+					t.Fatalf("expected providerId %q, got %q", "seed-google-get", got.ProviderID)
 				}
 				if got.DisplayName == nil || *got.DisplayName != "Seed User" {
-					t.Fatalf("expected display_name %q, got %v", "Seed User", got.DisplayName)
+					t.Fatalf("expected displayName %q, got %v", "Seed User", got.DisplayName)
 				}
 				if got.ProfilePic == nil || *got.ProfilePic != "https://example.com/seed.png" {
-					t.Fatalf("expected profile_pic %q, got %v", "https://example.com/seed.png", got.ProfilePic)
+					t.Fatalf("expected profilePic %q, got %v", "https://example.com/seed.png", got.ProfilePic)
 				}
 			},
 		},

@@ -24,10 +24,10 @@ const createFormMock = (overrides?: {
   isValid?: boolean;
   errors?: unknown[];
   isSubmitting?: boolean;
-  values?: Partial<Record<'original_url' | 'code' | 'note', string>>;
-  errorsByField?: Partial<Record<'original_url' | 'code' | 'note', unknown[]>>;
-  touchedByField?: Partial<Record<'original_url' | 'code' | 'note', boolean>>;
-  validByField?: Partial<Record<'original_url' | 'code' | 'note', boolean>>;
+  values?: Partial<Record<'originalUrl' | 'code' | 'note', string>>;
+  errorsByField?: Partial<Record<'originalUrl' | 'code' | 'note', unknown[]>>;
+  touchedByField?: Partial<Record<'originalUrl' | 'code' | 'note', boolean>>;
+  validByField?: Partial<Record<'originalUrl' | 'code' | 'note', boolean>>;
 }) => {
   const handleSubmit = vi.fn();
   const handleBlur = vi.fn();
@@ -42,14 +42,14 @@ const createFormMock = (overrides?: {
       name,
       children,
     }: {
-      name: 'original_url' | 'code' | 'note';
+      name: 'originalUrl' | 'code' | 'note';
       children: (field: MockField) => ReactNode;
     }) =>
       children({
         name,
         state: {
           value:
-            overrides?.values?.[name] ?? (name === 'original_url' ? (overrides?.value ?? '') : ''),
+            overrides?.values?.[name] ?? (name === 'originalUrl' ? (overrides?.value ?? '') : ''),
           meta: {
             isTouched: overrides?.touchedByField?.[name] ?? overrides?.isTouched ?? false,
             isValid: overrides?.validByField?.[name] ?? overrides?.isValid ?? true,
@@ -67,10 +67,10 @@ const createFormMock = (overrides?: {
 const addedLink: LinkRes = {
   id: 1,
   code: 'abc123',
-  original_url: 'https://example.com',
+  originalUrl: 'https://example.com',
   clicks: 0,
-  created_at: '2026-04-10T22:10:05.91425+03:00',
-  is_deleted: false,
+  createdAt: '2026-04-10T22:10:05.91425+03:00',
+  isDeleted: false,
 };
 
 describe('CreateLinkFormComp', () => {
@@ -114,9 +114,9 @@ describe('CreateLinkFormComp', () => {
 
   it('shows validation errors when the field is touched and invalid', () => {
     const { form } = createFormMock({
-      touchedByField: { original_url: true },
-      validByField: { original_url: false, code: true, note: true },
-      errorsByField: { original_url: ['Invalid URL'] },
+      touchedByField: { originalUrl: true },
+      validByField: { originalUrl: false, code: true, note: true },
+      errorsByField: { originalUrl: ['Invalid URL'] },
     });
 
     render(

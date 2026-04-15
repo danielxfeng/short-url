@@ -194,7 +194,7 @@ func TestUpsertUserReqValidation(t *testing.T) {
 		wantPass bool
 	}{
 		{
-			name: "required provider and provider_id applied",
+			name: "required provider and providerId applied",
 			in: UpsertUserReq{
 				Provider:   models.ProviderEnumGOOGLE,
 				ProviderID: "provider-id",
@@ -226,7 +226,7 @@ func TestUpsertUserReqValidation(t *testing.T) {
 			wantPass: true,
 		},
 		{
-			name: "trim applied to provider_id",
+			name: "trim applied to providerId",
 			in: UpsertUserReq{
 				Provider:   models.ProviderEnumGOOGLE,
 				ProviderID: "  id  ",
@@ -234,7 +234,7 @@ func TestUpsertUserReqValidation(t *testing.T) {
 			wantPass: true,
 		},
 		{
-			name: "min rule applied to provider_id",
+			name: "min rule applied to providerId",
 			in: UpsertUserReq{
 				Provider:   models.ProviderEnumGOOGLE,
 				ProviderID: "",
@@ -242,7 +242,7 @@ func TestUpsertUserReqValidation(t *testing.T) {
 			wantPass: false,
 		},
 		{
-			name: "omitempty allows nil display_name",
+			name: "omitempty allows nil displayName",
 			in: UpsertUserReq{
 				Provider:    models.ProviderEnumGOOGLE,
 				ProviderID:  "provider-id",
@@ -251,7 +251,7 @@ func TestUpsertUserReqValidation(t *testing.T) {
 			wantPass: true,
 		},
 		{
-			name: "trim applied to display_name",
+			name: "trim applied to displayName",
 			in: UpsertUserReq{
 				Provider:    models.ProviderEnumGOOGLE,
 				ProviderID:  "provider-id",
@@ -260,7 +260,7 @@ func TestUpsertUserReqValidation(t *testing.T) {
 			wantPass: true,
 		},
 		{
-			name: "min rule applied to display_name",
+			name: "min rule applied to displayName",
 			in: UpsertUserReq{
 				Provider:    models.ProviderEnumGOOGLE,
 				ProviderID:  "provider-id",
@@ -269,7 +269,7 @@ func TestUpsertUserReqValidation(t *testing.T) {
 			wantPass: false,
 		},
 		{
-			name: "omitempty allows nil profile_pic",
+			name: "omitempty allows nil profilePic",
 			in: UpsertUserReq{
 				Provider:   models.ProviderEnumGOOGLE,
 				ProviderID: "provider-id",

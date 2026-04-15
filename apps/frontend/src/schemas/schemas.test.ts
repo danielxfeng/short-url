@@ -26,15 +26,15 @@ describe('isSafeTargetUrl', () => {
 describe('CreateLinkReqSchema', () => {
   it('trims and accepts a public target url', () => {
     const parsed = CreateLinkReqSchema.parse({
-      original_url: '  https://example.com/path  ',
+      originalUrl: '  https://example.com/path  ',
     });
 
-    expect(parsed.original_url).toBe('https://example.com/path');
+    expect(parsed.originalUrl).toBe('https://example.com/path');
   });
 
   it('rejects private targets with the frontend validation message', () => {
     const result = CreateLinkReqSchema.safeParse({
-      original_url: 'http://127.0.0.1:8080/admin',
+      originalUrl: 'http://127.0.0.1:8080/admin',
     });
 
     expect(result.success).toBe(false);

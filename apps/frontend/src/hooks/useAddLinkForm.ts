@@ -11,7 +11,7 @@ const useAddLinkForm = () => {
 
   const form = useForm({
     defaultValues: {
-      original_url: '',
+      originalUrl: '',
       code: undefined as string | undefined | null,
       note: undefined as string | undefined | null,
     },
@@ -25,7 +25,7 @@ const useAddLinkForm = () => {
         try {
           const parsed = CreateLinkReqSchema.parse(value);
 
-          formApi.setFieldValue('original_url', parsed.original_url);
+          formApi.setFieldValue('originalUrl', parsed.originalUrl);
           formApi.setFieldValue('code', parsed.code ?? undefined);
           formApi.setFieldValue('note', parsed.note ?? undefined);
 
@@ -43,7 +43,7 @@ const useAddLinkForm = () => {
           let msg = 'Failed to add link. Please try again.';
           if (error instanceof Error && error.message) msg = error.message;
 
-          return { fields: { original_url: msg } };
+          return { fields: { originalUrl: msg } };
         }
       },
     },
