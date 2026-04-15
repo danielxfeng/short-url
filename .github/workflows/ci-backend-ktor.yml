@@ -1,0 +1,28 @@
+name: ci-backend-ktor
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "apps/backend-ktor/**"
+      - ".github/workflows/ci-backend-ktor.yml"
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+
+      - name: Run Ktor checks
+        working-directory: apps/backend-ktor
+        env:
+          TEST_DB_URL_KTOR: ${{ secrets.TEST_DB_URL_KTOR }}
+        run: ./gradlew test build

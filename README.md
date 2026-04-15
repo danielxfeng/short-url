@@ -5,6 +5,7 @@ A full-stack URL shortener with OAuth login, JWT-protected link management, clic
 The project is organized as a monorepo:
 
 - `apps/backend-chi`: Go + Chi backend API
+- `apps/backend-ktor`: Kotlin + Ktor backend API [experimental](#experimental)
 - `apps/frontend`: React + Vite frontend
 
 The project is hosted on: [https://s.danielslab.dev](https://s.danielslab.dev)
@@ -231,6 +232,87 @@ pnpm -r run test
 
 - Frontend uses Sentry React integration and an error boundary.
 - Backend initializes Sentry and integrates it with structured logging.
+
+## Experimental
+
+### Ktor Backend
+
+The Ktor backend in `apps/backend-ktor` is the Kotlin implementation of the same short-url API. Its goal is to replicate the Go server's behavior while running as a separate app on `http://localhost:8081`.
+
+Current status:
+
+- Replicates the Go backend's main behavior: OAuth login, JWT auth, short-link CRUD, redirect handling, soft delete, restore, permanent delete, and click tracking.
+- Uses port `8081` by default, while the Go backend uses `8080`.
+- Exposes workspace scripts through `pnpm --filter backend-ktor ...` and local Gradle entrypoints through `./gradlew ...`.
+- Is still experimental and should be treated as a parallel implementation, not the primary source of database setup.
+
+Important limitation:
+
+- `apps/backend-ktor` does not currently provide its own migration command or schema bootstrap.
+- Before running Ktor against a fresh database, initialize the database with the Go backend migration flow first:
+
+```bash
+pnpm --filter backend-chi db:migrate
+```
+
+- This is required because Ktor expects the existing PostgreSQL schema, including `provider_enum`, `users`, `links`, and related indexes.
+
+Ktor local setup:
+
+```bash
+cp apps/backend-ktor/.env.sample apps/backend-ktor/.env
+pnpm --filter backend-ktor dev
+```
+
+Local config notes:
+
+- `BACKEND_PUBLIC_URL` should match the Ktor server URL used by OAuth callbacks, usually `http://localhost:8081`.
+- `FRONTEND_REDIRECT_URL` should point to the frontend callback page, usually `http://localhost:5173/auth/callback`.
+- `JWT_EXPIRY` is parsed as an integer hour value. Do not append inline comments to the value in `.env`.
+- The frontend should point to the Ktor API with `VITE_API_BASE_URL=http://localhost:8081/api/v1/` when you want to test the Kotlin backend.
+
+Ktor stack:
+
+- Kotlin 2.3
+- Ktor 3
+- Gradle
+- PostgreSQL
+- Exposed
+- kotlinx.serialization
+- Ktor OAuth and JWT auth
+- Apache5 Ktor HTTP client
+- java-dotenv
+- ktlint
+
+Ktor project structure:
+
+```text
+apps/backend-ktor
+├── package.json                         # pnpm workspace scripts for Gradle tasks
+├── build.gradle.kts                    # Ktor, Kotlin, Exposed, and tooling dependencies
+├── src/main/resources/application.yaml # Ktor app config, port, JWT metadata, OAuth endpoints
+└── src/main/kotlin/dev/danielslab/shorturl
+    ├── Application.kt                  # Application bootstrap and dependency wiring
+    ├── config                          # Environment-backed runtime config
+    ├── db                              # Exposed database wiring and table schema definitions
+    ├── domain                          # Core domain models
+    ├── dto                             # Request/response and OAuth DTOs
+    ├── plugins                         # Ktor plugin setup such as auth, CORS, logging, status pages
+    ├── repository                      # PostgreSQL repository implementation
+    ├── routes                          # HTTP routes for users, auth, links, and redirects
+    ├── service                         # Service-layer helpers
+    └── utils                           # Shared helpers such as OAuth HTTP client utilities
+```
+
+Useful commands:
+
+```bash
+pnpm --filter backend-ktor dev
+pnpm --filter backend-ktor test
+pnpm --filter backend-ktor build
+pnpm --filter backend-ktor jar
+pnpm --filter backend-ktor docker:build
+```
 
 ## License
 
