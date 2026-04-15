@@ -31,6 +31,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
@@ -252,7 +253,7 @@ class LinkRoutesTest {
                     val links = body["links"]!!.jsonArray
 
                     assertEquals(false, body["has_more"]!!.jsonPrimitive.boolean)
-                    assertEquals(1, body["cursor"]!!.jsonPrimitive.int)
+                    assertEquals(null, body["cursor"]?.jsonPrimitive?.contentOrNull)
                     assertEquals(19, links.size)
                     assertEquals(
                         19,
@@ -313,7 +314,7 @@ class LinkRoutesTest {
                     val links = body["links"]!!.jsonArray
 
                     assertEquals(false, body["has_more"]!!.jsonPrimitive.boolean)
-                    assertEquals(1, body["cursor"]!!.jsonPrimitive.int)
+                    assertEquals(null, body["cursor"]?.jsonPrimitive?.contentOrNull)
                     assertEquals(20, links.size)
                     assertEquals(
                         20,
@@ -539,7 +540,7 @@ class LinkRoutesTest {
                 }.apply {
                     assertEquals(HttpStatusCode.Created, status)
                     assertEquals(
-                        """{"id":1,"user_id":7,"code":"hello-world","original_url":"https://example.com/page","clicks":0,"note":"my note","created_at":"2024-01-01T00:00:00Z","is_deleted":false}""",
+                        """{"id":1,"code":"hello-world","original_url":"https://example.com/page","clicks":0,"note":"my note","created_at":"2024-01-01T00:00:00Z","is_deleted":false}""",
                         bodyAsText(),
                     )
                 }

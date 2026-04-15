@@ -92,12 +92,13 @@ fun Route.linkRoutes(
             val newRequest = request.copy(limit = request.limit + 1)
             val links = linkRepository.getLinksByUserId(newRequest)
             val page = links.take(request.limit)
+            val hasMore = links.size > request.limit
 
             call.respond(
                 LinksResponseDto(
                     links = page.map { it.toResponse() },
-                    hasMore = links.size > request.limit,
-                    cursor = page.lastOrNull()?.id,
+                    hasMore = hasMore,
+                    cursor = if (hasMore) page.lastOrNull()?.id else null,
                 ),
             )
         }
@@ -220,7 +221,6 @@ private fun LinkDeleteRequestDto.toInput(userId: Int): LinkDeleteInput = LinkDel
 private fun Link.toResponse(): LinkResponseDto =
     LinkResponseDto(
         id = id,
-        userId = userId,
         code = code,
         originalUrl = originalUrl,
         clicks = clicks,

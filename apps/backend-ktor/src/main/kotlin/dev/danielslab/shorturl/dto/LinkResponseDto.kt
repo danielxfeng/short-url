@@ -6,8 +6,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class LinkResponseDto(
     val id: Int,
-    @SerialName("user_id")
-    val userId: Int,
     val code: String,
     @SerialName("original_url")
     val originalUrl: String,
