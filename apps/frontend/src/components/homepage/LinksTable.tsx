@@ -71,7 +71,7 @@ export const LinkRowComp = ({
       <TableRow onClick={() => setShowDeleteBtn((prev) => !prev)} className='cursor-pointer'>
         {/* Code */}
         <TableCell
-          className={cn('text-center', link.is_deleted && 'line-through text-muted-foreground')}
+          className={cn('text-center', link.isDeleted && 'line-through text-muted-foreground')}
         >
           <Tooltip>
             <TooltipTrigger asChild>
@@ -86,21 +86,21 @@ export const LinkRowComp = ({
               </a>
             </TooltipTrigger>
             <TooltipContent>
-              <p>{link.original_url}</p>
+              <p>{link.originalUrl}</p>
             </TooltipContent>
           </Tooltip>
         </TableCell>
 
         {/* Clicks */}
         <TableCell
-          className={cn('text-center', link.is_deleted && 'line-through text-muted-foreground')}
+          className={cn('text-center', link.isDeleted && 'line-through text-muted-foreground')}
         >
           {link.clicks}
         </TableCell>
 
         {/* Note */}
         <TableCell
-          className={cn('text-center', link.is_deleted && 'line-through text-muted-foreground')}
+          className={cn('text-center', link.isDeleted && 'line-through text-muted-foreground')}
         >
           <div className='truncate'>{link.note}</div>
         </TableCell>
@@ -116,17 +116,17 @@ export const LinkRowComp = ({
                 className='px-4'
                 onClick={(e) => {
                   e.stopPropagation();
-                  void operationHandler(link.is_deleted ? 'restore' : 'remove');
+                  void operationHandler(link.isDeleted ? 'restore' : 'remove');
                 }}
                 disabled={isPending}
-                variant={link.is_deleted ? 'outline' : 'destructive'}
+                variant={link.isDeleted ? 'outline' : 'destructive'}
                 size='xs'
               >
-                {isPending ? <Spinner /> : link.is_deleted ? 'Restore' : 'Delete'}
+                {isPending ? <Spinner /> : link.isDeleted ? 'Restore' : 'Delete'}
               </Button>
 
               {/* Permanently delete button, only show when the link is already soft deleted */}
-              {link.is_deleted && (
+              {link.isDeleted && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button

@@ -226,7 +226,7 @@ func TestShortURLRouter_AuthRequiredForProtectedEndpoints(t *testing.T) {
 		request *http.Request
 	}{
 		{name: "list endpoint requires auth", request: httptest.NewRequest(http.MethodGet, "/", nil)},
-		{name: "create endpoint requires auth", request: httptest.NewRequest(http.MethodPost, "/", bytes.NewReader([]byte(`{"original_url":"https://example.com/new"}`)))},
+		{name: "create endpoint requires auth", request: httptest.NewRequest(http.MethodPost, "/", bytes.NewReader([]byte(`{"originalUrl":"https://example.com/new"}`)))},
 		{name: "delete endpoint requires auth", request: httptest.NewRequest(http.MethodDelete, "/any-code", nil)},
 	}
 
@@ -391,7 +391,7 @@ func TestShortURLRouter_ListRequiresAuthAndSupportsPagination(t *testing.T) {
 			}
 
 			if resp.HasMore != tc.wantHasMore {
-				t.Fatalf("expected has_more=%v got %v", tc.wantHasMore, resp.HasMore)
+				t.Fatalf("expected hasMore=%v got %v", tc.wantHasMore, resp.HasMore)
 			}
 
 			if tc.wantCursorNil && resp.Cursor != nil {
@@ -436,7 +436,7 @@ func TestShortURLRouter_ListIncludesSoftDeletedLinks(t *testing.T) {
 		t.Fatalf("expected 3 links, got %d", len(resp.Links))
 	}
 	if resp.HasMore {
-		t.Fatalf("expected has_more=false got true")
+		t.Fatalf("expected hasMore=false got true")
 	}
 	if resp.Cursor != nil {
 		t.Fatalf("expected nil cursor, got %v", *resp.Cursor)
@@ -457,7 +457,7 @@ func TestShortURLRouter_ListIncludesSoftDeletedLinks(t *testing.T) {
 		t.Fatalf("expected deleted code %q in response", deleted.Code)
 	}
 	if !deletedResp.IsDeleted {
-		t.Fatalf("expected deleted code %q to have is_deleted=true", deleted.Code)
+		t.Fatalf("expected deleted code %q to have isDeleted=true", deleted.Code)
 	}
 }
 
@@ -529,7 +529,7 @@ func TestShortURLRouter_ListPaginationNormalizationBoundaries(t *testing.T) {
 				t.Fatalf("expected %d links, got %d", tc.wantCount, len(resp.Links))
 			}
 			if resp.HasMore != tc.wantHasMore {
-				t.Fatalf("expected has_more=%v got %v", tc.wantHasMore, resp.HasMore)
+				t.Fatalf("expected hasMore=%v got %v", tc.wantHasMore, resp.HasMore)
 			}
 			if tc.wantCursorNil && resp.Cursor != nil {
 				t.Fatalf("expected nil cursor, got %v", *resp.Cursor)
@@ -550,7 +550,7 @@ func TestShortURLRouter_CreateAndDelete(t *testing.T) {
 		t.Fatalf("generate token: %v", err)
 	}
 
-	createBody := []byte(`{"original_url":"https://example.com/new"}`)
+	createBody := []byte(`{"originalUrl":"https://example.com/new"}`)
 	createRR := httptest.NewRecorder()
 	h.ServeHTTP(createRR, authedReq(http.MethodPost, "/", tokenForUser, createBody))
 
@@ -569,7 +569,7 @@ func TestShortURLRouter_CreateAndDelete(t *testing.T) {
 		t.Fatalf("expected generated code")
 	}
 	if created.OriginalUrl != "https://example.com/new" {
-		t.Fatalf("expected original_url to match request, got %q", created.OriginalUrl)
+		t.Fatalf("expected originalUrl to match request, got %q", created.OriginalUrl)
 	}
 	if created.Note != nil {
 		t.Fatalf("expected note to be omitted when not provided, got %v", created.Note)
@@ -578,10 +578,10 @@ func TestShortURLRouter_CreateAndDelete(t *testing.T) {
 		t.Fatalf("expected clicks to be 0, got %d", created.Clicks)
 	}
 	if created.IsDeleted {
-		t.Fatalf("expected is_deleted to be false")
+		t.Fatalf("expected isDeleted to be false")
 	}
 	if created.CreatedAt.IsZero() {
-		t.Fatalf("expected created_at to be set")
+		t.Fatalf("expected createdAt to be set")
 	}
 
 	if _, err := q.GetLinkByCode(context.Background(), created.Code); err != nil {
@@ -679,7 +679,7 @@ func TestShortURLRouter_CreateCustomCodeAndNote(t *testing.T) {
 		t.Fatalf("generate token: %v", err)
 	}
 
-	createBody := []byte(`{"original_url":"https://example.com/custom","code":"my-code","note":"hello note"}`)
+	createBody := []byte(`{"originalUrl":"https://example.com/custom","code":"my-code","note":"hello note"}`)
 	createRR := httptest.NewRecorder()
 	h.ServeHTTP(createRR, authedReq(http.MethodPost, "/", tokenForUser, createBody))
 
@@ -721,7 +721,7 @@ func TestShortURLRouter_CreateDuplicateCustomCodeReturnsConflict(t *testing.T) {
 		t.Fatalf("generate token: %v", err)
 	}
 
-	createBody := []byte(`{"original_url":"https://example.com/custom","code":"taken-code"}`)
+	createBody := []byte(`{"originalUrl":"https://example.com/custom","code":"taken-code"}`)
 	createRR := httptest.NewRecorder()
 	h.ServeHTTP(createRR, authedReq(http.MethodPost, "/", tokenForUser, createBody))
 
@@ -771,7 +771,7 @@ func TestShortURLRouter_CreateValidationError(t *testing.T) {
 	h := ShortURLRouter(d, newShortURLTestRepo(q))
 	_ = seedUser(t, q, "validation-user")
 
-	badBody := []byte(`{"original_url":"not-a-url"}`)
+	badBody := []byte(`{"originalUrl":"not-a-url"}`)
 	rr := httptest.NewRecorder()
 	h.ServeHTTP(rr, authedReq(http.MethodPost, "/", token, badBody))
 
@@ -785,7 +785,7 @@ func TestShortURLRouter_CreateRejectsPrivateTargetURL(t *testing.T) {
 	h := ShortURLRouter(d, newShortURLTestRepo(q))
 	_ = seedUser(t, q, "private-target-user")
 
-	badBody := []byte(`{"original_url":"http://127.0.0.1:8080/admin"}`)
+	badBody := []byte(`{"originalUrl":"http://127.0.0.1:8080/admin"}`)
 	rr := httptest.NewRecorder()
 	h.ServeHTTP(rr, authedReq(http.MethodPost, "/", token, badBody))
 
@@ -799,7 +799,7 @@ func TestShortURLRouter_CreateInvalidCustomCodeReturnsBadRequest(t *testing.T) {
 	h := ShortURLRouter(d, newShortURLTestRepo(q))
 	_ = seedUser(t, q, "invalid-code-user")
 
-	badBody := []byte(`{"original_url":"https://example.com/custom","code":"bad_code"}`)
+	badBody := []byte(`{"originalUrl":"https://example.com/custom","code":"bad_code"}`)
 	rr := httptest.NewRecorder()
 	h.ServeHTTP(rr, authedReq(http.MethodPost, "/", token, badBody))
 
@@ -813,7 +813,7 @@ func TestShortURLRouter_CreateMalformedJSONError(t *testing.T) {
 	h := ShortURLRouter(d, newShortURLTestRepo(q))
 	_ = seedUser(t, q, "malformed-user")
 
-	badBody := []byte(`{"original_url":`)
+	badBody := []byte(`{"originalUrl":`)
 	rr := httptest.NewRecorder()
 	h.ServeHTTP(rr, authedReq(http.MethodPost, "/", token, badBody))
 

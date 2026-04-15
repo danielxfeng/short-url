@@ -100,7 +100,7 @@ describe('fetchApi', () => {
       }),
     );
 
-    const body = { original_url: 'https://example.com' };
+    const body = { originalUrl: 'https://example.com' };
 
     const result = await fetchApi<typeof body, { id: number }>({
       path: 'links',

@@ -7,9 +7,9 @@ export type OauthProvider = z.infer<typeof OauthProviderEnum>;
 export const UserResSchema = z.object({
   id: z.int32(),
   provider: OauthProviderEnum,
-  provider_id: z.string(),
-  display_name: z.string().nullish(),
-  profile_pic: z.string().nullish(),
+  providerId: z.string(),
+  displayName: z.string().nullish(),
+  profilePic: z.string().nullish(),
 });
 export type UserRes = z.infer<typeof UserResSchema>;
 
@@ -93,36 +93,32 @@ const SafeTargetUrlSchema = z
   .refine(isSafeTargetUrl, { message: 'Enter a public http(s) URL' });
 
 export const CodeSchema = z
-  .string()
-  .trim()
-  .min(1)
-  .max(255)
-  .nullish()
+  .union([z.string().trim().min(1).max(255), z.null(), z.undefined()])
   .refine((val) => val === null || val === undefined || isAlphaNumericDash(val), {
     message: 'Code can only contain letters, numbers, and dashes',
   });
 
 export const CreateLinkReqSchema = z.object({
-  original_url: SafeTargetUrlSchema,
+  originalUrl: SafeTargetUrlSchema,
   code: CodeSchema,
-  note: z.string().trim().max(255).nullish(),
+  note: z.union([z.string().trim().max(255), z.null(), z.undefined()]),
 });
 export type CreateLinkReq = z.infer<typeof CreateLinkReqSchema>;
 
 export const LinkResSchema = z.object({
   id: z.int32(),
   code: z.string(),
-  original_url: z.url(),
+  originalUrl: z.url(),
   clicks: z.int32(),
   note: z.string().nullish(),
-  created_at: z.iso.datetime({ offset: true }),
-  is_deleted: z.boolean(),
+  createdAt: z.iso.datetime({ offset: true }),
+  isDeleted: z.boolean(),
 });
 export type LinkRes = z.infer<typeof LinkResSchema>;
 
 export const LinksResSchema = z.object({
   links: z.array(LinkResSchema),
-  has_more: z.boolean(),
+  hasMore: z.boolean(),
   cursor: z.int32().nullish(),
 });
 export type LinksRes = z.infer<typeof LinksResSchema>;

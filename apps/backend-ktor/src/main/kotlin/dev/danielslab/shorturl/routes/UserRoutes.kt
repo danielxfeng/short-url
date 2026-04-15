@@ -203,5 +203,5 @@ private fun User.toResponseDto(): UserResponseDto =
         provider = provider,
         providerId = providerId,
         displayName = displayName,
-        profilePicture = profilePicture,
+        profilePic = profilePicture,
     )

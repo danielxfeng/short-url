@@ -8,19 +8,19 @@ import { LinkRowComp, LinkTableComp } from './LinksTable';
 const activeLink: LinkRes = {
   id: 1,
   code: 'alive123',
-  original_url: 'https://example.com/very/long/url',
+  originalUrl: 'https://example.com/very/long/url',
   clicks: 3,
-  created_at: '2026-04-10T22:10:05.91425+03:00',
-  is_deleted: false,
+  createdAt: '2026-04-10T22:10:05.91425+03:00',
+  isDeleted: false,
 };
 
 const deletedLink: LinkRes = {
   id: 2,
   code: 'dead456',
-  original_url: 'https://example.com/deleted',
+  originalUrl: 'https://example.com/deleted',
   clicks: 7,
-  created_at: '2026-04-10T22:10:05.91425+03:00',
-  is_deleted: true,
+  createdAt: '2026-04-10T22:10:05.91425+03:00',
+  isDeleted: true,
 };
 
 const renderRow = (props: React.ComponentProps<typeof LinkRowComp>) =>

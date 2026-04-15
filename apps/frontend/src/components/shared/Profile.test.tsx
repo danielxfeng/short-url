@@ -7,9 +7,9 @@ describe('ProfileComp', () => {
   const user: UserRes = {
     id: 1,
     provider: 'GOOGLE',
-    provider_id: 'provider-id',
-    display_name: 'Alice',
-    profile_pic: null,
+    providerId: 'provider-id',
+    displayName: 'Alice',
+    profilePic: null,
   };
 
   it('renders an accessible profile trigger and menu actions', async () => {

@@ -170,17 +170,17 @@ type APIErrorRes struct {
 
 type UpsertUserReq struct {
 	Provider    models.ProviderEnum `json:"provider" validate:"required,trim,oneof=GOOGLE GITHUB"`
-	ProviderID  string              `json:"provider_id" validate:"required,trim,min=1,max=255"`
-	DisplayName *string             `json:"display_name" validate:"omitempty,trim,min=1,max=255"`
-	ProfilePic  *string             `json:"profile_pic" validate:"omitempty,trim,min=1,max=255"`
+	ProviderID  string              `json:"providerId" validate:"required,trim,min=1,max=255"`
+	DisplayName *string             `json:"displayName" validate:"omitempty,trim,min=1,max=255"`
+	ProfilePic  *string             `json:"profilePic" validate:"omitempty,trim,min=1,max=255"`
 }
 
 type UserResponse struct {
 	ID          int32               `json:"id"`
 	Provider    models.ProviderEnum `json:"provider"`
-	ProviderID  string              `json:"provider_id"`
-	DisplayName *string             `json:"display_name,omitempty"`
-	ProfilePic  *string             `json:"profile_pic,omitempty"`
+	ProviderID  string              `json:"providerId"`
+	DisplayName *string             `json:"displayName,omitempty"`
+	ProfilePic  *string             `json:"profilePic,omitempty"`
 }
 
 type UserWithTokenResponse struct {
@@ -189,7 +189,7 @@ type UserWithTokenResponse struct {
 }
 
 type CreateLinkReq struct {
-	OriginalUrl string  `json:"original_url" validate:"required,trim,safe_target_url"`
+	OriginalUrl string  `json:"originalUrl" validate:"required,trim,safe_target_url"`
 	Code        *string `json:"code,omitempty" validate:"omitempty,trim,min=1,max=255,shortcode"`
 	Note        *string `json:"note,omitempty" validate:"omitempty,trim,min=1,max=255"`
 }
@@ -197,15 +197,15 @@ type CreateLinkReq struct {
 type LinkResponse struct {
 	ID          int32     `json:"id"`
 	Code        string    `json:"code"`
-	OriginalUrl string    `json:"original_url"`
+	OriginalUrl string    `json:"originalUrl"`
 	Note        *string   `json:"note,omitempty"`
 	Clicks      int32     `json:"clicks"`
-	CreatedAt   time.Time `json:"created_at"`
-	IsDeleted   bool      `json:"is_deleted"`
+	CreatedAt   time.Time `json:"createdAt"`
+	IsDeleted   bool      `json:"isDeleted"`
 }
 
 type LinksResponse struct {
 	Links   []LinkResponse `json:"links"`
-	HasMore bool           `json:"has_more"`
+	HasMore bool           `json:"hasMore"`
 	Cursor  *int32         `json:"cursor,omitempty"`
 }

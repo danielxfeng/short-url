@@ -96,8 +96,11 @@ class PqRepositoryTest {
     @Test
     fun `deleteUserById throws not found when user is missing`() {
         runBlocking {
+            val missingUserId = 999_999
+            assertNull(testContext.repository.getUserById(missingUserId))
+
             assertFailsWith<NotFoundException> {
-                testContext.repository.deleteUserById(1)
+                testContext.repository.deleteUserById(missingUserId)
             }
         }
     }

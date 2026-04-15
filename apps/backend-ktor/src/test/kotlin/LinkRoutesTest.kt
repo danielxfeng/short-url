@@ -205,7 +205,7 @@ class LinkRoutesTest {
                 }.apply {
                     assertEquals(HttpStatusCode.OK, status)
                     assertEquals(
-                        """{"links":[],"has_more":false,"cursor":null}""",
+                        """{"links":[],"hasMore":false,"cursor":null}""",
                         bodyAsText(),
                     )
                 }
@@ -252,7 +252,7 @@ class LinkRoutesTest {
                     val body = Json.parseToJsonElement(bodyAsText()).jsonObject
                     val links = body["links"]!!.jsonArray
 
-                    assertEquals(false, body["has_more"]!!.jsonPrimitive.boolean)
+                    assertEquals(false, body["hasMore"]!!.jsonPrimitive.boolean)
                     assertEquals(null, body["cursor"]?.jsonPrimitive?.contentOrNull)
                     assertEquals(19, links.size)
                     assertEquals(
@@ -313,7 +313,7 @@ class LinkRoutesTest {
                     val body = Json.parseToJsonElement(bodyAsText()).jsonObject
                     val links = body["links"]!!.jsonArray
 
-                    assertEquals(false, body["has_more"]!!.jsonPrimitive.boolean)
+                    assertEquals(false, body["hasMore"]!!.jsonPrimitive.boolean)
                     assertEquals(null, body["cursor"]?.jsonPrimitive?.contentOrNull)
                     assertEquals(20, links.size)
                     assertEquals(
@@ -374,7 +374,7 @@ class LinkRoutesTest {
                     val body = Json.parseToJsonElement(bodyAsText()).jsonObject
                     val links = body["links"]!!.jsonArray
 
-                    assertEquals(true, body["has_more"]!!.jsonPrimitive.boolean)
+                    assertEquals(true, body["hasMore"]!!.jsonPrimitive.boolean)
                     assertEquals(2, body["cursor"]!!.jsonPrimitive.int)
                     assertEquals(20, links.size)
                     assertEquals(
@@ -419,7 +419,7 @@ class LinkRoutesTest {
                     bearerAuth(issueTestToken(7, config))
                 }.apply {
                     assertEquals(HttpStatusCode.OK, status)
-                    assertEquals("""{"links":[],"has_more":false,"cursor":null}""", bodyAsText())
+                    assertEquals("""{"links":[],"hasMore":false,"cursor":null}""", bodyAsText())
                 }
 
             assertEquals(LinkListInput(userId = 7, cursor = "123", limit = 101), repository.lastListInput)
@@ -448,7 +448,7 @@ class LinkRoutesTest {
                     bearerAuth(issueTestToken(7, config))
                 }.apply {
                     assertEquals(HttpStatusCode.OK, status)
-                    assertEquals("""{"links":[],"has_more":false,"cursor":null}""", bodyAsText())
+                    assertEquals("""{"links":[],"hasMore":false,"cursor":null}""", bodyAsText())
                 }
 
             assertEquals(LinkListInput(userId = 7, cursor = null, limit = 21), repository.lastListInput)
@@ -536,11 +536,11 @@ class LinkRoutesTest {
                 .post("/api/v1/short-urls") {
                     bearerAuth(issueTestToken(7, config))
                     contentType(ContentType.Application.Json)
-                    setBody("""{"code":"hello-world","original_url":"https://example.com/page","note":"my note"}""")
+                    setBody("""{"code":"hello-world","originalUrl":"https://example.com/page","note":"my note"}""")
                 }.apply {
                     assertEquals(HttpStatusCode.Created, status)
                     assertEquals(
-                        """{"id":1,"code":"hello-world","original_url":"https://example.com/page","clicks":0,"note":"my note","created_at":"2024-01-01T00:00:00Z","is_deleted":false}""",
+                        """{"id":1,"code":"hello-world","originalUrl":"https://example.com/page","clicks":0,"note":"my note","createdAt":"2024-01-01T00:00:00Z","isDeleted":false}""",
                         bodyAsText(),
                     )
                 }
@@ -578,7 +578,7 @@ class LinkRoutesTest {
                 .post("/api/v1/short-urls") {
                     bearerAuth(issueTestToken(7, config))
                     contentType(ContentType.Application.Json)
-                    setBody("""{"original_url":"https://example.com/page","note":"my note"}""")
+                    setBody("""{"originalUrl":"https://example.com/page","note":"my note"}""")
                 }.apply {
                     assertEquals(HttpStatusCode.Created, status)
                 }
@@ -613,7 +613,7 @@ class LinkRoutesTest {
                 .post("/api/v1/short-urls") {
                     bearerAuth(issueTestToken(7, config))
                     contentType(ContentType.Application.Json)
-                    setBody("""{"code":"","original_url":"https://example.com/page"}""")
+                    setBody("""{"code":"","originalUrl":"https://example.com/page"}""")
                 }.apply {
                     assertEquals(HttpStatusCode.BadRequest, status)
                     assertEquals(
@@ -646,7 +646,7 @@ class LinkRoutesTest {
                 .post("/api/v1/short-urls") {
                     bearerAuth(issueTestToken(7, config))
                     contentType(ContentType.Application.Json)
-                    setBody("""{"code":"hello-world","original_url":"https://example.com/page"}""")
+                    setBody("""{"code":"hello-world","originalUrl":"https://example.com/page"}""")
                 }.apply {
                     assertEquals(HttpStatusCode.Conflict, status)
                     assertEquals("""{"error":"Link already exists"}""", bodyAsText())

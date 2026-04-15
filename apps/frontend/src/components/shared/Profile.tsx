@@ -47,8 +47,8 @@ export const ProfileComp = ({
       <Button variant='ghost' size='icon' className='rounded-full' aria-label='Open account menu'>
         {/* User avatar */}
         <Avatar>
-          <AvatarImage src={user.profile_pic ?? undefined} />
-          <AvatarFallback>{user.display_name?.charAt(0) || 'U'}</AvatarFallback>
+          <AvatarImage src={user.profilePic ?? undefined} />
+          <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
         </Avatar>
       </Button>
     </DropdownMenuTrigger>
