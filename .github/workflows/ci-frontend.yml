@@ -11,9 +11,6 @@ on:
 jobs:
   test-frontend:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/frontend
 
     steps:
       - uses: actions/checkout@v5
@@ -34,4 +31,4 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run pre-commit checks
-        run: pnpm run precommit
+        run: pnpm --filter frontend run precommit
