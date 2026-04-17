@@ -19,14 +19,14 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@10.14.0",
+  "packageManager": "pnpm@10.33.0",
   "devDependencies": {
     "@eslint/js": "^10.0.0",
     "eslint": ">=9.33.0",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-config-xo": "^0.49.0",
+    "eslint-config-xo": "^0.51.0",
     "globals": "^17.3.0",
-    "prettier": "3.8.1",
+    "prettier": "3.8.3",
     "typescript": "^6.0.0",
     "typescript-eslint": "^8.54.0",
     "vitest": "^4.0.18"
