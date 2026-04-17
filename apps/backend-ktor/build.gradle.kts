@@ -5,10 +5,10 @@ val logbackVersion = providers.gradleProperty("logback_version").get()
 val postgresVersion = providers.gradleProperty("postgres_version").get()
 
 plugins {
-    kotlin("jvm") version "2.3.0"
+    kotlin("jvm") version "2.3.20"
     id("io.ktor.plugin") version "3.4.2"
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.3.0"
-    id("org.jlleitschuh.gradle.ktlint") version "14.1.0"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.3.20"
+    id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
 }
 
 group = "dev.danielslab.shorturl"
@@ -41,7 +41,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
     implementation("com.h2database:h2:$h2Version")
     implementation("org.postgresql:postgresql:$postgresVersion")
-    implementation("io.github.flaxoos:ktor-server-rate-limiting:2.2.1")
+    implementation("io.github.flaxoos:ktor-server-rate-limiting:2.3.0")
     implementation("io.ktor:ktor-server-hsts")
     implementation("io.ktor:ktor-server-host-common")
     implementation("io.ktor:ktor-server-status-pages")
