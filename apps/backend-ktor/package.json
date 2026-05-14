@@ -15,5 +15,5 @@
     "docker:build": "./gradlew buildImage",
     "docker:publish:local": "./gradlew publishImageToLocalRegistry"
   },
-  "packageManager": "pnpm@10.33.0"
+  "packageManager": "pnpm@11.1.2"
 }
