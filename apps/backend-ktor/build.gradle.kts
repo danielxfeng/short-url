@@ -5,9 +5,9 @@ val logbackVersion = providers.gradleProperty("logback_version").get()
 val postgresVersion = providers.gradleProperty("postgres_version").get()
 
 plugins {
-    kotlin("jvm") version "2.3.20"
-    id("io.ktor.plugin") version "3.4.2"
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.3.20"
+    kotlin("jvm") version "2.4.10"
+    id("io.ktor.plugin") version "3.5.2"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.4.10"
     id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
 }
 
